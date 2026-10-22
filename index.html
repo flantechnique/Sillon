@@ -48,6 +48,8 @@ a { color: inherit; }
 .side .keep.on { background: var(--accent); color: #111; border-color: var(--accent); }
 .side svg { width: 22px; height: 22px; }
 .side .report { color: var(--dim); }
+.src { margin-top: 12px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); text-decoration: none; opacity: .7; }
+.src:hover { opacity: 1; }
 @media (max-width: 560px) {
   .meta { flex-direction: column; gap: 16px; }
   .side { width: 100%; justify-content: space-between; }
@@ -110,8 +112,9 @@ header > * { pointer-events: auto; }
 <div id="kept"><ul></ul></div>
 <audio id="audio" preload="auto"></audio>
 
+<script src="filter.js"></script>
 <script>
-const MAX_TRACK_ID = 4400000000;
+const { SPOKEN, AMBIENCE, normLabel, isMusic, randomId } = SillonFilter;
 const BATCH = 10;
 const AHEAD = 3;
 
@@ -129,14 +132,12 @@ const SB_HEADERS = { apikey: SB_KEY, 'Content-Type': 'application/json' };
 // Identifiant d'appareil aléatoire : sert seulement à repérer les doublons de signalement.
 const device = store.get('device', null) || (() => { const id = crypto.randomUUID(); store.set('device', id); return id; })();
 // Liste d'exclusion décidée après relecture des signalements (fermes à contenu, pas des artistes).
-const blockedArtists = new Set();
-const blockedLabels = new Set();
-const normLabel = l => String(l || '').trim().toLowerCase();
+const blocks = { artists: new Set(), labels: new Set() };
 try { localStorage.removeItem('sillon.blocks'); } catch {} // ancienne version : blocages locaux abandonnés
 
 const sharedBlocks = fetch(SB_URL + '/rest/v1/rpc/sillon_blocklist', { method: 'POST', headers: SB_HEADERS, body: '{}' })
   .then(r => r.ok ? r.json() : [])
-  .then(rows => rows.forEach(({ kind, value }) => (kind === 'artist' ? blockedArtists : blockedLabels).add(value)))
+  .then(rows => rows.forEach(({ kind, value }) => (kind === 'artist' ? blocks.artists : blocks.labels).add(value)))
   .catch(() => {});
 
 // --- Deezer (JSONP, pas de CORS sur l'API) ---
@@ -154,71 +155,86 @@ function dz(path, timeout = 6000) {
   });
 }
 
-// --- Écarte ce qui n'est pas de la musique : livres audio, contes, podcasts, ambiances de relaxation ---
-const EXCLUDED_GENRES = new Set([457, 95]); // Livres audio, Jeunesse
-const HEAVY_GENRES = new Set([464, 152, 116, 85]); // Metal, Rock, Rap, Alternative
-// Textes lus et podcasts : repérés sur artiste, album et label, quel que soit le genre.
-const SPOKEN = new RegExp([
-  'podcast', '[ée]pisode', 'chapitre', 'chapter', 'kapitel', 'cap[ií]tulo', 'capitolo', 'hoofdstuk', 'rozdzia[łl]',
-  'livre audio', 'audio ?books?', 'audiolibro', 'h[öo]rbuch', 'h[öo]rspiel', 'lesung', 'sermon', 'pr[ée]dication', 'conf[ée]rence',
-].join('|'), 'i');
-// Fermes à musique d'ambiance : même repérage (leur genre dit souvent « Pop » ou « Electro »).
-const AMBIENCE = new RegExp([
-  'sleep', 'sommeil', 'schlaf', 'dormir', 'relax', 'd[ée]tente', 'entspann', 'medita', 'm[ée]ditation', 'mindful', 'yoga', '\\bspa\\b',
-  'massage', 'reiki', 'chakra', '\\bzen\\b', 'calm', 'sooth', 'apais', 'healing', 'gu[ée]rison', 'insomni', 'hypno', 'affirmation',
-  'white noise', 'brown noise', 'pink noise', 'bruit blanc', 'rain sounds?', 'bruit de (la )?pluie', 'nature sounds?', 'sons? de la nature',
-  'ocean waves', 'thunderstorm', 'asmr', 'binaural', 'solfeggio', '\\d{3} ?hz', 'frequenc', 'fr[ée]quence',
-  'study music', 'focus music', 'for (study|studying|focus|work|reading)', 'study ?& ?focus', 'lo-?fi beats', 'beats to', 'concentration', 'lullab', 'berceuse', 'for babies', 'pour b[ée]b[ée]', 'background music', "musique d'ambiance",
-  'ambiance music', 'relajant', 'relaxant', 'rilassant', '\\bbgm\\b', 'chill ?out music', 'chill music', 'caf[ée] music', 'coffee shop',
-  '(music|musique|m[uú]sica|musik) (for|pour|para|per|zum|zur) ', 'lounge music', 'spa music', 'piano bar', 'karaoke', 'karaok[ée]',
-].join('|'), 'i');
-// Titres seuls : uniquement les marqueurs non ambigus (une chanson peut s'appeler « Rain » ou « Sleep »).
-const NOT_MUSIC_TITLE = /podcast|[ée]pisode \d|chapitre \d|chapter \d|kapitel \d|white noise|bruit blanc|asmr|binaural|\d{3} ?hz|sleep music|relaxing music|karaok/i;
+// --- Réserve : titres tirés au hasard et filtrés chaque jour par GitHub Actions (tools/build-pool.js) ---
+// Une seule requête Deezer par titre (pour un extrait frais) au lieu d'une vingtaine.
+const pool = { queue: [], chunks: null, version: '', loading: null };
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
-function isBlocked(track, album) {
-  return blockedArtists.has(String(track.artist.id)) || blockedLabels.has(normLabel(album.label));
+async function loadChunk() {
+  if (!pool.chunks) {
+    const idx = await fetch('pool/index.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null);
+    pool.chunks = idx && idx.chunks ? shuffle([...Array(idx.chunks).keys()]) : [];
+    pool.version = idx ? idx.updated : '';
+  }
+  const n = pool.chunks.pop();
+  if (n === undefined) return;
+  const rows = await fetch(`pool/${n}.json?v=${encodeURIComponent(pool.version)}`).then(r => r.json()).catch(() => []);
+  pool.queue.push(...shuffle(rows));
 }
 
-function isMusic(track, album) {
-  if (isBlocked(track, album)) return false;
-  if (EXCLUDED_GENRES.has(album.genre_id)) return false;
-  if ((album.genres?.data || []).some(g => EXCLUDED_GENRES.has(g.id))) return false;
-  if (track.duration && (track.duration > 900 || track.duration < 45)) return false;
-  const name = track.artist.name || '';
-  if (name.length > 45 || (name.match(/,/g) || []).length >= 2) return false; // noms-catalogues à mots-clés
-  const catalog = [name, album.title, album.label].join(' | ');
-  if (SPOKEN.test(catalog)) return false;
-  // Pas de musique d'ambiance en metal, rock, rap ou alternatif : on n'y cherche pas ces mots (« Sleep » y est un vrai titre).
-  if (!HEAVY_GENRES.has(album.genre_id) && AMBIENCE.test(catalog)) return false;
-  if (NOT_MUSIC_TITLE.test(track.title || '')) return false;
-  return true;
+async function fromPool() {
+  for (let tries = 0; tries < 40; tries++) {
+    if (!pool.queue.length) {
+      await (pool.loading ||= loadChunk().finally(() => { pool.loading = null; }));
+      if (!pool.queue.length) return null; // réserve épuisée ou absente
+    }
+    const e = pool.queue.pop(); // { i: titre, a: artiste, g: genre, l: label }
+    if (seenArtists.has(e.a) || blocks.artists.has(String(e.a)) || blocks.labels.has(normLabel(e.l))) continue;
+    let tr;
+    try { tr = await dz('/track/' + e.i); }
+    catch (err) { if (err instanceof Error || err?.code === 4) throw err; continue; } // Deezer refuse : on passe à la source de secours
+    if (!tr.preview || !tr.artist || seenArtists.has(tr.artist.id)) continue;
+    const album = { ...tr.album, genre_id: e.g, label: e.l };
+    if (!isMusic(tr, album, blocks)) continue; // le filtre a pu évoluer depuis le tirage
+    seenArtists.add(tr.artist.id);
+    return { track: tr, artist: tr.artist, album };
+  }
+  return null;
 }
 
-function randomId() { return Math.floor(Math.random() * MAX_TRACK_ID) + 1; }
-
-// Tire des IDs de titres au hasard jusqu'à trouver un titre jouable d'un artiste jamais vu.
+// Deezer d'abord (réserve, puis tirage direct). S'il refuse ou ne répond plus, Apple Music prend le relais 10 minutes.
+let deezerDownUntil = 0;
 async function findTrack() {
   await sharedBlocks;
-  let refused = 0;
-  for (let round = 0; round < 25; round++) {
-    const results = await Promise.allSettled(Array.from({ length: BATCH }, () => dz('/track/' + randomId())));
-    // « no data » (code 800) est normal : l'ID n'existe pas. Réseau coupé ou quota dépassé (code 4) : on ralentit puis on abandonne.
-    const failures = results.filter(r => r.status === 'rejected' && (r.reason instanceof Error || r.reason?.code === 4)).length;
-    if (failures > BATCH / 2) {
-      if (++refused >= 3) throw new Error('deezer indisponible');
-      await new Promise(r => setTimeout(r, 2000 * refused));
-      continue;
-    }
-    const candidates = results
-      .filter(r => r.status === 'fulfilled' && r.value.preview && r.value.artist && !seenArtists.has(r.value.artist.id))
-      .map(r => r.value);
-    for (const tr of candidates) {
-      if (seenArtists.has(tr.artist.id)) continue;
-      let album = tr.album;
-      try { album = { ...tr.album, ...(await dz('/album/' + tr.album.id)) }; } catch { continue; } // sans genre ni label, on ne prend pas le risque
-      if (!isMusic(tr, album)) continue;
-      seenArtists.add(tr.artist.id);
-      return { track: tr, artist: tr.artist, album };
+  if (Date.now() > deezerDownUntil) {
+    try { return (await fromPool()) || await drawDirect(); }
+    catch { deezerDownUntil = Date.now() + 10 * 60000; }
+  }
+  return drawApple();
+}
+
+// --- Apple Music (source de secours : même catalogue grand public que Deezer ou Spotify, sans clé) ---
+// Une requête interroge 200 identifiants tirés au hasard et renvoie souvent des dizaines de chansons.
+const APPLE_MAX_ID = 1900000000; // identifiants de titres Apple jusqu'à ~1,9 milliard (mesuré le 23/10/2026)
+const APPLE_COUNTRY = 'FR';
+const APPLE_EXCLUDED_GENRES = /relax|karaok|enfant|children|kids|jeunesse|livres? audio|audiobook|spoken|parl[ée]|humou?r|comedy|com[ée]die|fitness|instruct|podcast|m[ée]ditation|nature|bruit/i;
+const appleQueue = [];
+
+async function refillApple() {
+  const ids = Array.from({ length: 200 }, () => Math.floor(Math.random() * APPLE_MAX_ID) + 1);
+  const res = await fetch(`https://itunes.apple.com/lookup?country=${APPLE_COUNTRY}&id=${ids.join(',')}`).then(r => r.ok ? r.json() : null).catch(() => null);
+  appleQueue.push(...shuffle((res?.results || []).filter(r => r.kind === 'song' && r.previewUrl)));
+  return !!res;
+}
+
+async function drawApple() {
+  for (let tries = 0; tries < 6; tries++) {
+    if (!appleQueue.length && !(await refillApple())) await new Promise(r => setTimeout(r, 3000));
+    while (appleQueue.length) {
+      const t = appleQueue.pop();
+      if (APPLE_EXCLUDED_GENRES.test(t.primaryGenreName || '')) continue;
+      const artist = { id: 'ap:' + t.artistId, rawId: t.artistId, name: t.artistName, link: t.artistViewUrl || t.trackViewUrl };
+      if (seenArtists.has(artist.id)) continue;
+      const art = t.artworkUrl100 || '';
+      const track = {
+        id: 'ap:' + t.trackId, rawId: t.trackId, source: 'apple', title: t.trackName, duration: (t.trackTimeMillis || 0) / 1000,
+        preview: t.previewUrl, release_date: t.releaseDate || '', link: t.trackViewUrl, artist,
+        album: { id: t.collectionId, title: t.collectionName || '', cover_xl: art.replace('100x100', '1000x1000'), cover_medium: art.replace('100x100', '250x250') },
+      };
+      const album = { ...track.album, genre_id: null, label: '' };
+      if (!isMusic(track, album, blocks)) continue;
+      seenArtists.add(artist.id);
+      return { track, artist, album };
     }
   }
   throw new Error('rien trouvé');
@@ -231,6 +247,7 @@ const cards = [];
 let current = -1;
 let pending = 0;
 
+const SOURCE_NAMES = { deezer: 'Deezer', apple: 'Apple Music', audius: 'Audius' };
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 function placeholder() {
@@ -263,7 +280,8 @@ function fill(c, { track, artist, album }) {
       <button class="keep" aria-label="Garder"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.5-9.2C1 8.2 3.3 4.5 7 4.5c2 0 3.6 1.1 5 2.8 1.4-1.7 3-2.8 5-2.8 3.7 0 6 3.7 4.5 7.3C19.5 16.4 12 21 12 21z"/></svg></button>
       <button class="next" aria-label="Suivant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
     </div></div>
-    <div class="bar"><i></i></div>`;
+    <div class="bar"><i></i></div>
+    <a class="src" href="${esc(track.link || artist.link)}" target="_blank" rel="noopener">${SOURCE_NAMES[track.source || 'deezer']}</a>`;
   const keepBtn = c.el.querySelector('.keep');
   keepBtn.classList.toggle('on', kept.some(k => k.trackId === track.id));
   keepBtn.onclick = e => { e.stopPropagation(); toggleKeep(c, keepBtn); };
@@ -284,7 +302,7 @@ async function report(c) {
 
   // Analyse du catalogue de l'artiste : combien de ses albums ressemblent à des ambiances ou des textes lus.
   let catalogHits = 0;
-  try {
+  if (!track.source) try { // Deezer seulement
     const albums = await dz('/artist/' + artist.id + '/albums?limit=50');
     catalogHits = (albums.data || []).filter(a => SPOKEN.test(a.title) || AMBIENCE.test(a.title)).length;
   } catch {}
@@ -295,8 +313,8 @@ async function report(c) {
     method: 'POST',
     headers: { ...SB_HEADERS, Prefer: 'return=minimal' },
     body: JSON.stringify({
-      device, track_id: track.id, title: clip(track.title), artist_id: artist.id, artist_name: clip(artist.name),
-      album_id: album?.id ?? null, album_title: clip(album?.title), label: clip(album?.label), genre_id: album?.genre_id ?? null,
+      device, source: track.source || 'deezer', track_id: String(track.rawId ?? track.id), title: clip(track.title),
+      artist_id: String(artist.rawId ?? artist.id), artist_name: clip(artist.name), album_id: album?.id != null ? String(album.id) : null, album_title: clip(album?.title), label: clip(album?.label), genre_id: album?.genre_id ?? null,
       catalog_hits: Math.min(catalogHits, 100),
     }),
   }).catch(() => {});
@@ -376,7 +394,7 @@ function toggleKeep(c, btn) {
   const i = kept.findIndex(k => k.trackId === track.id);
   if (i >= 0) kept.splice(i, 1);
   else kept.unshift({
-    trackId: track.id, title: track.title, artist: artist.name, artistLink: artist.link,
+    trackId: track.id, source: track.source || 'deezer', title: track.title, artist: artist.name, artistLink: artist.link,
     cover: track.album?.cover_medium || artist.picture_medium || '', at: Date.now(),
   });
   btn.classList.toggle('on', i < 0);
@@ -392,7 +410,7 @@ function renderKept() {
     return `<li>
       <img src="${esc(k.cover)}" alt="">
       <div class="t"><b>${esc(k.title)}</b><span>${esc(k.artist)}</span>
-        <small class="row"><a href="${esc(k.artistLink)}" target="_blank" rel="noopener">Deezer</a><a href="https://open.spotify.com/search/${q}" target="_blank" rel="noopener">Spotify</a><a href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener">YouTube</a><a href="https://bandcamp.com/search?q=${encodeURIComponent(k.artist)}" target="_blank" rel="noopener">Bandcamp</a></small></div>
+        <small class="row"><a href="${esc(k.artistLink)}" target="_blank" rel="noopener">${SOURCE_NAMES[k.source || 'deezer']}</a><a href="https://open.spotify.com/search/${q}" target="_blank" rel="noopener">Spotify</a><a href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener">YouTube</a><a href="https://bandcamp.com/search?q=${encodeURIComponent(k.artist)}" target="_blank" rel="noopener">Bandcamp</a></small></div>
       <button class="x" data-i="${i}" aria-label="Retirer">×</button></li>`;
   }).join('');
   ul.querySelectorAll('.x').forEach(b => b.onclick = () => {

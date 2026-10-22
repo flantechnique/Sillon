@@ -1,0 +1,41 @@
+name: Réserve de titres
+
+on:
+  schedule:
+    - cron: '17 3 * * *' # chaque jour vers 5 h (heure de Paris)
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Nombre de nouveaux titres
+        default: '2500'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pool
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 130
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Tirage
+        run: node tools/build-pool.js
+        env:
+          TARGET: ${{ github.event.inputs.target || '2500' }}
+          MAX_MINUTES: '110'
+      - name: Publication
+        run: |
+          git config user.name "sillon-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pool
+          if git diff --cached --quiet; then echo "Rien de neuf"; exit 0; fi
+          git commit -m "Réserve : tirage du $(date -u +%F)"
+          git pull --rebase origin main
+          git push
