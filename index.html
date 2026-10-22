@@ -93,7 +93,25 @@ header > * { pointer-events: auto; }
 #kept .h.on { color: var(--accent); }
 #kept .empty { text-align: center; color: var(--dim); margin-top: 30vh; }
 #kept .row a { font-size: 12px; color: var(--dim); margin-right: 10px; }
-.syncLink { display: block; margin: 28px auto 0; font-size: 13px; color: var(--dim); text-decoration: underline; text-underline-offset: 3px; }
+.panelLinks { display: flex; justify-content: center; gap: 22px; margin-top: 28px; }
+.syncLink { font-size: 13px; color: var(--dim); text-decoration: underline; text-underline-offset: 3px; }
+
+.sheet { position: fixed; inset: 0; z-index: 25; background: rgba(0,0,0,.75); display: none; align-items: center; justify-content: center; padding: 16px; }
+.sheet.open { display: flex; }
+.sheet .box { position: relative; width: min(100%, 420px); max-height: calc(100% - 32px); overflow-y: auto; background: #1a1816; border: 1px solid var(--line); border-radius: 14px; padding: 26px 20px 20px; }
+.sheet .x { position: absolute; top: 6px; right: 10px; font-size: 24px; color: var(--dim); padding: 6px; }
+.sheet h2 { font-size: 20px; padding-right: 30px; }
+.sheet .hint { margin-top: 10px; font-size: 13px; color: var(--dim); line-height: 1.45; }
+.seg { display: inline-flex; margin-top: 14px; border: 1px solid var(--line); border-radius: 99px; overflow: hidden; }
+.seg button { font-size: 12px; padding: 6px 14px; color: var(--dim); }
+.seg button.on { background: var(--fg); color: #111; }
+#exportList { margin: 16px 0 0 20px; font-size: 14px; line-height: 1.55; max-height: 32vh; overflow-y: auto; }
+#exportList span { color: var(--accent); }
+.sheet .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.sheet .actions button { flex: 1; padding: 11px 12px; border-radius: 8px; border: 1px solid var(--line); font-size: 14px; font-weight: 600; }
+.sheet .actions .primary { background: var(--accent); border-color: var(--accent); color: #111; }
+.sheet .backup { display: flex; justify-content: space-between; gap: 12px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 12px; color: var(--dim); }
+.sheet .backup button, .sheet .backup label { text-decoration: underline; text-underline-offset: 3px; cursor: pointer; color: var(--dim); }
 
 #sync { position: fixed; inset: 0; z-index: 25; background: rgba(0,0,0,.75); display: none; align-items: center; justify-content: center; padding: 16px; }
 #sync.open { display: flex; }
@@ -127,7 +145,21 @@ header > * { pointer-events: auto; }
 </header>
 
 <div id="feed"></div>
-<div id="kept"><ul></ul><button id="syncBtn" class="syncLink">Synchroniser mes appareils</button></div>
+<div id="kept"><ul></ul><div class="panelLinks"><button id="exportBtn" class="syncLink">Exporter</button><button id="syncBtn" class="syncLink">Synchroniser mes appareils</button></div></div>
+<div id="export" class="sheet">
+  <div class="box">
+    <button class="x" data-close aria-label="Fermer">×</button>
+    <h2 id="exportTitle"></h2>
+    <div class="seg" id="exportRange"><button data-range="month">Ce mois-ci</button><button data-range="all">Tout</button></div>
+    <ol id="exportList"></ol>
+    <div class="actions">
+      <button id="exportPlaylist" class="primary">Créer une playlist</button>
+      <button id="exportCopy">Copier la liste</button>
+    </div>
+    <p class="hint" id="exportHint"></p>
+    <div class="backup"><button id="backupSave">Sauvegarder dans un fichier</button><label>Restaurer<input type="file" id="backupLoad" accept=".json,application/json" hidden></label></div>
+  </div>
+</div>
 <div id="sync">
   <div class="box">
     <button id="syncClose" class="x" aria-label="Fermer">×</button>
@@ -648,6 +680,98 @@ document.getElementById('syncForm').onsubmit = e => {
 })();
 if (syncCode) syncNow();
 
+// --- Export, récap du mois et sauvegarde ---
+// Créer une playlist directement demanderait un accès que Spotify, Apple ou Deezer réservent aux grosses applis :
+// on passe par une liste « Artiste - Titre » que TuneMyMusic importe vers n'importe quelle plateforme.
+const exportEl = document.getElementById('export');
+let exportRange = 'month';
+let exportMonth = { y: new Date().getFullYear(), m: new Date().getMonth() };
+const monthLabel = ({ y, m }) => { const s = new Date(y, m, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }); return s[0].toUpperCase() + s.slice(1); };
+const inMonth = (k, { y, m }) => { const d = new Date(k.at || 0); return d.getFullYear() === y && d.getMonth() === m; };
+const exportItems = () => exportRange === 'all' ? kept : kept.filter(k => inMonth(k, exportMonth));
+const asText = items => items.map(k => `${k.artist} - ${k.title}`).join('\n');
+const setHint = t => { document.getElementById('exportHint').textContent = t; };
+
+function renderExport() {
+  const items = exportItems();
+  document.getElementById('exportTitle').textContent =
+    `${exportRange === 'all' ? 'Tous les titres gardés' : monthLabel(exportMonth)} · ${items.length} titre${items.length > 1 ? 's' : ''}`;
+  const [bMonth, bAll] = document.querySelectorAll('#exportRange button');
+  bMonth.textContent = monthLabel(exportMonth).split(' ')[0];
+  bMonth.classList.toggle('on', exportRange === 'month');
+  bAll.classList.toggle('on', exportRange === 'all');
+  document.getElementById('exportList').innerHTML = items.length
+    ? items.map(k => `<li><span>${esc(k.artist)}</span> – ${esc(k.title)}</li>`).join('')
+    : '<li>—</li>';
+  document.querySelectorAll('#export .actions button').forEach(b => { b.disabled = !items.length; b.style.opacity = items.length ? 1 : .4; });
+}
+
+function openExport(range = 'month', month = null) {
+  exportRange = range;
+  if (month) exportMonth = month;
+  setHint('');
+  exportEl.classList.add('open');
+  renderExport();
+}
+
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); return true; }
+  catch {
+    const ta = Object.assign(document.createElement('textarea'), { value: t });
+    document.body.appendChild(ta); ta.select();
+    const ok = document.execCommand('copy'); ta.remove(); return ok;
+  }
+}
+
+document.getElementById('exportBtn').onclick = () => openExport('month', { y: new Date().getFullYear(), m: new Date().getMonth() });
+document.querySelectorAll('#exportRange button').forEach(b => b.onclick = () => { exportRange = b.dataset.range; renderExport(); });
+document.getElementById('exportCopy').onclick = async () => {
+  setHint(await copyText(asText(exportItems())) ? 'Liste copiée.' : 'Copie impossible sur cet appareil.');
+};
+document.getElementById('exportPlaylist').onclick = async () => {
+  await copyText(asText(exportItems()));
+  setHint('Liste copiée. Sur TuneMyMusic, choisissez « texte » comme source, collez la liste, puis la plateforme de votre choix (Spotify, Deezer, Apple Music, YouTube Music…).');
+  open('https://www.tunemymusic.com/transfer', '_blank', 'noopener');
+};
+
+// Sauvegarde complète dans un fichier (filet de sécurité si le code de synchronisation est perdu).
+document.getElementById('backupSave').onclick = async () => {
+  const data = { app: 'sillon', v: 1, exported: new Date().toISOString(), kept, keptRemoved, recent, seen: [...seenArtists].slice(-20000) };
+  const name = `sillon-${new Date().toISOString().slice(0, 10)}.json`;
+  const file = new File([JSON.stringify(data)], name, { type: 'application/json' });
+  if (navigator.canShare?.({ files: [file] })) { try { await navigator.share({ files: [file], title: 'Sauvegarde Sillon' }); return; } catch {} }
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(file), download: name });
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+};
+document.getElementById('backupLoad').onchange = async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    if (data.app !== 'sillon') throw new Error();
+    mergeState(data);
+    syncNow();
+    renderExport();
+    setHint(`Sauvegarde restaurée : ${kept.length} titres gardés.`);
+  } catch { setHint('Fichier non reconnu.'); }
+};
+
+document.querySelectorAll('.sheet').forEach(s => s.addEventListener('click', e => {
+  if (e.target === s || e.target.closest('[data-close]')) s.classList.remove('open');
+}));
+
+// Une fois par mois, à la première ouverture : récap des titres gardés le mois précédent.
+function maybeRecap() {
+  const now = new Date();
+  const key = `${now.getFullYear()}-${now.getMonth()}`;
+  if (store.get('recapSeen', null) === key) return;
+  store.set('recapSeen', key);
+  const prev = { y: new Date(now.getFullYear(), now.getMonth() - 1, 1).getFullYear(), m: new Date(now.getFullYear(), now.getMonth() - 1, 1).getMonth() };
+  if (kept.some(k => inMonth(k, prev))) openExport('month', prev);
+}
+
 // --- Clavier ---
 addEventListener('keydown', e => {
   if (e.target.closest('input, textarea')) return;
@@ -663,6 +787,7 @@ document.getElementById('go').onclick = () => {
   audio.play().catch(() => {});
   if (current < 0) setCurrent(0); // sans attendre la détection de la carte visible
   else play(current);
+  maybeRecap();
 };
 renderPanel();
 topUp();
