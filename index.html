@@ -88,6 +88,9 @@ header > * { pointer-events: auto; }
 #kept .t span { color: var(--accent); font-size: 14px; }
 #kept .t small { display: block; color: var(--dim); font-size: 12px; margin-top: 2px; }
 #kept .x { color: var(--dim); font-size: 20px; padding: 8px; }
+#kept .h { color: var(--dim); padding: 8px; display: grid; }
+#kept .h svg { width: 20px; height: 20px; }
+#kept .h.on { color: var(--accent); }
 #kept .empty { text-align: center; color: var(--dim); margin-top: 30vh; }
 #kept .row a { font-size: 12px; color: var(--dim); margin-right: 10px; }
 
@@ -104,6 +107,7 @@ header > * { pointer-events: auto; }
 <header>
   <div class="logo">SILLON</div>
   <div class="hbtns">
+    <button class="pill" id="recentBtn">Récents</button>
     <button class="pill" id="keptBtn">Gardés <span id="keptN"></span></button>
   </div>
 </header>
@@ -284,11 +288,12 @@ function fill(c, { track, artist, album }) {
     <a class="src" href="${esc(track.link || artist.link)}" target="_blank" rel="noopener">${SOURCE_NAMES[track.source || 'deezer']}</a>`;
   const keepBtn = c.el.querySelector('.keep');
   keepBtn.classList.toggle('on', kept.some(k => k.trackId === track.id));
-  keepBtn.onclick = e => { e.stopPropagation(); toggleKeep(c, keepBtn); };
+  keepBtn.onclick = e => { e.stopPropagation(); toggleKept(entryOf(c)); };
   c.el.querySelector('.next').onclick = e => { e.stopPropagation(); go(cards.indexOf(c) + 1); };
   c.el.querySelector('.report').onclick = e => { e.stopPropagation(); report(c); };
   c.el.querySelector('.cover').onclick = () => togglePlay();
   if (cards.indexOf(c) === current) play(current);
+  else if (cards.indexOf(c) === current + 1) preloadNext();
 }
 
 // --- Signalement « pas de la musique » ---
@@ -341,6 +346,18 @@ function topUp() {
   }
 }
 
+// Second lecteur muet : télécharge l'extrait suivant à l'avance pour enchaîner sans blanc.
+const preloader = new Audio();
+preloader.preload = 'auto';
+preloader.muted = true;
+function preloadNext() {
+  const n = cards[current + 1];
+  if (!n?.data || preloader.dataset.id === String(n.data.track.id)) return;
+  preloader.src = n.data.track.preview;
+  preloader.dataset.id = n.data.track.id;
+  preloader.load();
+}
+
 function play(i) {
   const c = cards[i];
   cards.forEach(x => x.el.classList.remove('paused'));
@@ -348,34 +365,46 @@ function play(i) {
   if (audio.dataset.id !== String(c.data.track.id)) {
     audio.src = c.data.track.preview;
     audio.dataset.id = c.data.track.id;
+    remember(c);
+    setSession(c);
   }
   audio.play().catch(() => c.el.classList.add('paused'));
+  preloadNext();
 }
 
-function togglePlay() {
+function togglePlay(force) {
   const c = cards[current];
   if (!c || !c.data) return;
-  if (audio.paused) { audio.play(); c.el.classList.remove('paused'); }
+  const shouldPlay = force ?? audio.paused;
+  if (shouldPlay) { audio.play(); c.el.classList.remove('paused'); }
   else { audio.pause(); c.el.classList.add('paused'); }
+}
+
+// Change de titre sans attendre le défilement : marche aussi écran verrouillé (boutons des écouteurs).
+function setCurrent(i) {
+  if (i === current || !cards[i]) return;
+  current = i;
+  const c = cards[i];
+  if (c.failed) {
+    c.failed = false;
+    c.el.innerHTML = '<div class="spin"></div><div class="loading">TIRAGE</div>';
+    pending++;
+    findTrack().then(d => fill(c, d)).catch(() => {}).finally(() => pending--);
+  }
+  play(i);
+  topUp();
 }
 
 function go(i) {
   if (i < 0 || i >= cards.length) return;
-  cards[i].el.scrollIntoView({ behavior: 'smooth' });
+  setCurrent(i);
+  cards[i].el.scrollIntoView({ behavior: document.hidden ? 'auto' : 'smooth' });
 }
 
 // Détecte la carte visible
 const io = new IntersectionObserver(entries => {
   for (const e of entries) {
-    if (e.isIntersecting && e.intersectionRatio > .6) {
-      const i = cards.findIndex(c => c.el === e.target);
-      if (i !== current) {
-        current = i;
-        if (cards[i].failed) { cards[i].failed = false; cards[i].el.innerHTML = '<div class="spin"></div><div class="loading">TIRAGE</div>'; pending++; findTrack().then(d => fill(cards[i], d)).catch(() => {}).finally(() => pending--); }
-        play(i);
-        topUp();
-      }
-    }
+    if (e.isIntersecting && e.intersectionRatio > .6) setCurrent(cards.findIndex(c => c.el === e.target));
   }
 }, { root: feed, threshold: [.6] });
 new MutationObserver(m => m.forEach(r => r.addedNodes.forEach(n => n.nodeType === 1 && n.classList.contains('card') && io.observe(n)))).observe(feed, { childList: true });
@@ -384,45 +413,85 @@ audio.addEventListener('timeupdate', () => {
   const bar = cards[current]?.el.querySelector('.bar i');
   if (bar && audio.duration) bar.style.width = (audio.currentTime / audio.duration * 100) + '%';
 });
-audio.addEventListener('ended', () => { audio.currentTime = 0; audio.play(); });
+// Fin de l'extrait : on enchaîne, comme une radio (utile écran verrouillé).
+audio.addEventListener('ended', () => go(current + 1));
 
-// --- Gardés ---
-const keptEl = document.getElementById('kept');
-const keptN = document.getElementById('keptN');
-function toggleKeep(c, btn) {
+// --- Écran verrouillé, écouteurs, montre : titre, pochette et commandes ---
+function setSession(c) {
+  if (!('mediaSession' in navigator)) return;
   const { track, artist } = c.data;
-  const i = kept.findIndex(k => k.trackId === track.id);
-  if (i >= 0) kept.splice(i, 1);
-  else kept.unshift({
+  const cover = track.album?.cover_xl || track.album?.cover_medium || '';
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: track.title, artist: artist.name, album: track.album?.title || '',
+    artwork: cover ? [{ src: cover, sizes: '1000x1000', type: 'image/jpeg' }] : [],
+  });
+}
+if ('mediaSession' in navigator) {
+  const actions = { play: () => togglePlay(true), pause: () => togglePlay(false), nexttrack: () => go(current + 1), previoustrack: () => go(current - 1) };
+  for (const [k, fn] of Object.entries(actions)) try { navigator.mediaSession.setActionHandler(k, fn); } catch {}
+}
+
+// --- Gardés et récents (le cœur ne sert qu'à retrouver un titre : il n'influence jamais le tirage) ---
+let recent = store.get('recent', []);
+const panelEl = document.getElementById('kept');
+const keptN = document.getElementById('keptN');
+let panelMode = null; // 'kept' | 'recent' | null
+
+function entryOf(c) {
+  const { track, artist } = c.data;
+  return {
     trackId: track.id, source: track.source || 'deezer', title: track.title, artist: artist.name, artistLink: artist.link,
     cover: track.album?.cover_medium || artist.picture_medium || '', at: Date.now(),
-  });
-  btn.classList.toggle('on', i < 0);
-  store.set('kept', kept);
-  renderKept();
+  };
 }
-function renderKept() {
+
+function remember(c) {
+  const e = entryOf(c);
+  recent = [e, ...recent.filter(r => r.trackId !== e.trackId)].slice(0, 50);
+  store.set('recent', recent);
+  if (panelMode === 'recent') renderPanel();
+}
+
+function toggleKept(e) {
+  const i = kept.findIndex(k => k.trackId === e.trackId);
+  if (i >= 0) kept.splice(i, 1);
+  else kept.unshift({ ...e, at: Date.now() });
+  store.set('kept', kept);
+  cards.forEach(c => c.data && c.el.querySelector('.keep')?.classList.toggle('on', kept.some(k => k.trackId === c.data.track.id)));
+  renderPanel();
+}
+
+const HEART = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.5-9.2C1 8.2 3.3 4.5 7 4.5c2 0 3.6 1.1 5 2.8 1.4-1.7 3-2.8 5-2.8 3.7 0 6 3.7 4.5 7.3C19.5 16.4 12 21 12 21z"/></svg>';
+
+function renderPanel() {
   keptN.textContent = kept.length ? kept.length : '';
-  const ul = keptEl.querySelector('ul');
-  if (!kept.length) { ul.innerHTML = '<li class="empty">—</li>'; return; }
-  ul.innerHTML = kept.map((k, i) => {
+  document.getElementById('keptBtn').classList.toggle('on', panelMode === 'kept');
+  document.getElementById('recentBtn').classList.toggle('on', panelMode === 'recent');
+  panelEl.classList.toggle('open', !!panelMode);
+  if (!panelMode) return;
+  const list = panelMode === 'kept' ? kept : recent;
+  const ul = panelEl.querySelector('ul');
+  if (!list.length) { ul.innerHTML = '<li class="empty">—</li>'; return; }
+  ul.innerHTML = list.map((k, i) => {
     const q = encodeURIComponent(k.artist + ' ' + k.title);
+    const action = panelMode === 'kept'
+      ? `<button class="x" data-i="${i}" aria-label="Retirer">×</button>`
+      : `<button class="h${kept.some(x => x.trackId === k.trackId) ? ' on' : ''}" data-i="${i}" aria-label="Garder">${HEART}</button>`;
     return `<li>
       <img src="${esc(k.cover)}" alt="">
       <div class="t"><b>${esc(k.title)}</b><span>${esc(k.artist)}</span>
         <small class="row"><a href="${esc(k.artistLink)}" target="_blank" rel="noopener">${SOURCE_NAMES[k.source || 'deezer']}</a><a href="https://open.spotify.com/search/${q}" target="_blank" rel="noopener">Spotify</a><a href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener">YouTube</a><a href="https://bandcamp.com/search?q=${encodeURIComponent(k.artist)}" target="_blank" rel="noopener">Bandcamp</a></small></div>
-      <button class="x" data-i="${i}" aria-label="Retirer">×</button></li>`;
+      ${action}</li>`;
   }).join('');
-  ul.querySelectorAll('.x').forEach(b => b.onclick = () => {
-    const id = kept[+b.dataset.i].trackId;
-    kept.splice(+b.dataset.i, 1); store.set('kept', kept); renderKept();
-    cards.forEach(c => c.data?.track.id === id && c.el.querySelector('.keep')?.classList.remove('on'));
-  });
+  ul.querySelectorAll('.x, .h').forEach(b => b.onclick = () => toggleKept(list[+b.dataset.i]));
 }
-document.getElementById('keptBtn').onclick = () => {
-  const open = keptEl.classList.toggle('open');
-  document.getElementById('keptBtn').classList.toggle('on', open);
-};
+
+function openPanel(mode) {
+  panelMode = panelMode === mode ? null : mode;
+  renderPanel();
+}
+document.getElementById('keptBtn').onclick = () => openPanel('kept');
+document.getElementById('recentBtn').onclick = () => openPanel('recent');
 
 // --- Clavier ---
 addEventListener('keydown', e => {
@@ -436,9 +505,10 @@ addEventListener('keydown', e => {
 document.getElementById('go').onclick = () => {
   document.getElementById('start').remove();
   audio.play().catch(() => {});
-  if (cards[current]?.data) play(current);
+  if (current < 0) setCurrent(0); // sans attendre la détection de la carte visible
+  else play(current);
 };
-renderKept();
+renderPanel();
 topUp();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>

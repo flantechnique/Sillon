@@ -25,7 +25,7 @@
     '(music|musique|m[uú]sica|musik) (for|pour|para|per|zum|zur) ', 'lounge music', 'spa music', 'piano bar', 'karaoke', 'karaok[ée]',
   ].join('|'), 'i');
   // Titres seuls : uniquement les marqueurs non ambigus (une chanson peut s'appeler « Rain » ou « Sleep »).
-  const NOT_MUSIC_TITLE = /podcast|[ée]pisode \d|chapitre \d|chapter \d|kapitel \d|^часть \d|^глава \d|white noise|bruit blanc|asmr|binaural|\d{3} ?hz|sleep music|relaxing music|karaok/i;
+  const NOT_MUSIC_TITLE = /podcast|[ée]pisode \d|(chapitre|chapter|kapitel|hoofdstuk|cap[ií]tulo|capitolo|rozdzia[łl]|luku|kapittel) \d|^часть \d|^глава \d|white noise|bruit blanc|asmr|binaural|\d{3} ?hz|sleep music|relaxing music|karaok/i;
 
   const normLabel = l => String(l || '').trim().toLowerCase();
 
