@@ -126,15 +126,13 @@ let kept = store.get('kept', []);
 const SB_URL = 'https://nqigjixiqtaavfscqhag.supabase.co';
 const SB_KEY = 'sb_publishable_il0mHmr3JCISQaX-QeevDg_tKOmG3E4';
 const SB_HEADERS = { apikey: SB_KEY, 'Content-Type': 'application/json' };
-// Identifiant d'appareil aléatoire : sert seulement à compter les signalements distincts.
+// Identifiant d'appareil aléatoire : sert seulement à repérer les doublons de signalement.
 const device = store.get('device', null) || (() => { const id = crypto.randomUUID(); store.set('device', id); return id; })();
-// Blocages : ceux de cet appareil (immédiats) + la liste partagée (signalés par au moins 2 appareils).
-const localBlocks = store.get('blocks', { artists: [], labels: [] });
-const blockedArtists = new Set(localBlocks.artists);
-const blockedLabels = new Set(localBlocks.labels);
+// Liste d'exclusion décidée après relecture des signalements (fermes à contenu, pas des artistes).
+const blockedArtists = new Set();
+const blockedLabels = new Set();
 const normLabel = l => String(l || '').trim().toLowerCase();
-// Labels de distribution partagés par trop de vrais artistes : jamais bloqués (même liste côté base).
-const GENERIC_LABEL = /^\s*(independent|indépendant|independiente|self[- ]?released|autoproduction|distrokid|cd ?baby|tunecore|ditto|amuse|routenote|unitedmasters|believe|onerpm|awal|spinnup|recordjet|zimbalam|records dk|n\/a|none|unknown)\s*$|^\d+\s+records\s+dk$/i;
+try { localStorage.removeItem('sillon.blocks'); } catch {} // ancienne version : blocages locaux abandonnés
 
 const sharedBlocks = fetch(SB_URL + '/rest/v1/rpc/sillon_blocklist', { method: 'POST', headers: SB_HEADERS, body: '{}' })
   .then(r => r.ok ? r.json() : [])
@@ -275,42 +273,23 @@ function fill(c, { track, artist, album }) {
   if (cards.indexOf(c) === current) play(current);
 }
 
-// Retire une carte déjà tirée et la remplace par un nouveau tirage.
-function redraw(c) {
-  c.data = null;
-  c.el.innerHTML = '<div class="spin"></div><div class="loading">TIRAGE</div>';
-  pending++;
-  findTrack().then(d => fill(c, d)).catch(() => { c.failed = true; }).finally(() => pending--);
-}
-
 // --- Signalement « pas de la musique » ---
+// Il ne bannit personne : il sert seulement à repérer ce que le filtre laisse passer, pour l'améliorer.
 async function report(c) {
   if (!c.data || c.reported) return;
   c.reported = true;
   const { track, artist, album } = c.data;
-  const label = normLabel(album?.label);
-
-  // 1. Effet immédiat sur cet appareil : l'artiste et son label ne reviendront plus.
-  blockedArtists.add(String(artist.id));
-  if (!localBlocks.artists.includes(String(artist.id))) localBlocks.artists.push(String(artist.id));
-  if (label && !GENERIC_LABEL.test(label)) {
-    blockedLabels.add(label);
-    if (!localBlocks.labels.includes(label)) localBlocks.labels.push(label);
-  }
-  store.set('blocks', localBlocks);
   toast('Signalé');
   go(cards.indexOf(c) + 1);
-  // Les cartes déjà préparées du même artiste ou label sont retirées.
-  cards.forEach((x, i) => { if (i > current && x.data && isBlocked(x.data.track, x.data.album || {})) redraw(x); });
 
-  // 2. Analyse du catalogue de l'artiste : combien de ses albums ressemblent à des ambiances ou des textes lus.
+  // Analyse du catalogue de l'artiste : combien de ses albums ressemblent à des ambiances ou des textes lus.
   let catalogHits = 0;
   try {
     const albums = await dz('/artist/' + artist.id + '/albums?limit=50');
     catalogHits = (albums.data || []).filter(a => SPOKEN.test(a.title) || AMBIENCE.test(a.title)).length;
   } catch {}
 
-  // 3. Envoi partagé : à partir de 2 appareils, l'artiste et le label sont bloqués pour tout le monde.
+  // Envoi pour relecture.
   const clip = (s, n = 400) => String(s ?? '').slice(0, n);
   fetch(SB_URL + '/rest/v1/sillon_reports', {
     method: 'POST',
