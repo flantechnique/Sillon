@@ -15,6 +15,7 @@ Application web statique, installable sur téléphone.
 | `pool/` | Réserve de titres tirés au hasard et filtrés | régénérée chaque jour par `.github/workflows/pool.yml` |
 | `tools/build-pool.js` | Script de tirage (Node 18+, sans dépendance) | GitHub Actions ou n'importe quel ordinateur |
 | Signalements | Table `sillon_reports` + fonction `sillon_blocklist()` | Supabase (projet top-youtube) |
+| Synchronisation | Table `sillon_sync` + fonctions `sillon_sync_get/put` : une ligne par code, identifiée par l'empreinte SHA-256 du code (le code ne quitte jamais les appareils) | Supabase (projet top-youtube) |
 
 Sources audio, dans l'ordre :
 1. **Deezer** : réserve (1 requête par titre), puis tirage direct si la réserve est vide.
