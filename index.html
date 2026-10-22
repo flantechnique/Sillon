@@ -47,6 +47,16 @@ a { color: inherit; }
 .side button, .side a { width: 48px; height: 48px; border-radius: 50%; background: rgba(0,0,0,.45); border: 1px solid var(--line); display: grid; place-items: center; text-decoration: none; font-size: 13px; font-weight: 700; letter-spacing: .02em; }
 .side .keep.on { background: var(--accent); color: #111; border-color: var(--accent); }
 .side svg { width: 22px; height: 22px; }
+.side .report { color: var(--dim); }
+@media (max-width: 560px) {
+  .meta { flex-direction: column; gap: 16px; }
+  .side { width: 100%; justify-content: space-between; }
+  .side .report { margin-right: auto; }
+  .side .keep { margin-right: 6px; }
+}
+
+#toast { position: fixed; left: 50%; bottom: calc(28px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); opacity: 0; transition: .25s; z-index: 30; background: rgba(0,0,0,.8); border: 1px solid var(--line); padding: 8px 16px; border-radius: 99px; font-size: 13px; pointer-events: none; }
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
 
 
 .loading { color: var(--dim); font-size: 14px; letter-spacing: .1em; }
@@ -112,6 +122,25 @@ const store = {
 const seenArtists = new Set(store.get('seen', []));
 let kept = store.get('kept', []);
 
+// --- Signalements partagés (Supabase, clé publique : insertion et lecture de la liste de blocage seulement) ---
+const SB_URL = 'https://nqigjixiqtaavfscqhag.supabase.co';
+const SB_KEY = 'sb_publishable_il0mHmr3JCISQaX-QeevDg_tKOmG3E4';
+const SB_HEADERS = { apikey: SB_KEY, 'Content-Type': 'application/json' };
+// Identifiant d'appareil aléatoire : sert seulement à compter les signalements distincts.
+const device = store.get('device', null) || (() => { const id = crypto.randomUUID(); store.set('device', id); return id; })();
+// Blocages : ceux de cet appareil (immédiats) + la liste partagée (signalés par au moins 2 appareils).
+const localBlocks = store.get('blocks', { artists: [], labels: [] });
+const blockedArtists = new Set(localBlocks.artists);
+const blockedLabels = new Set(localBlocks.labels);
+const normLabel = l => String(l || '').trim().toLowerCase();
+// Labels de distribution partagés par trop de vrais artistes : jamais bloqués (même liste côté base).
+const GENERIC_LABEL = /^\s*(independent|indépendant|independiente|self[- ]?released|autoproduction|distrokid|cd ?baby|tunecore|ditto|amuse|routenote|unitedmasters|believe|onerpm|awal|spinnup|recordjet|zimbalam|records dk|n\/a|none|unknown)\s*$|^\d+\s+records\s+dk$/i;
+
+const sharedBlocks = fetch(SB_URL + '/rest/v1/rpc/sillon_blocklist', { method: 'POST', headers: SB_HEADERS, body: '{}' })
+  .then(r => r.ok ? r.json() : [])
+  .then(rows => rows.forEach(({ kind, value }) => (kind === 'artist' ? blockedArtists : blockedLabels).add(value)))
+  .catch(() => {});
+
 // --- Deezer (JSONP, pas de CORS sur l'API) ---
 let cbN = 0;
 function dz(path, timeout = 6000) {
@@ -148,7 +177,12 @@ const AMBIENCE = new RegExp([
 // Titres seuls : uniquement les marqueurs non ambigus (une chanson peut s'appeler « Rain » ou « Sleep »).
 const NOT_MUSIC_TITLE = /podcast|[ée]pisode \d|chapitre \d|chapter \d|kapitel \d|white noise|bruit blanc|asmr|binaural|\d{3} ?hz|sleep music|relaxing music|karaok/i;
 
+function isBlocked(track, album) {
+  return blockedArtists.has(String(track.artist.id)) || blockedLabels.has(normLabel(album.label));
+}
+
 function isMusic(track, album) {
+  if (isBlocked(track, album)) return false;
   if (EXCLUDED_GENRES.has(album.genre_id)) return false;
   if ((album.genres?.data || []).some(g => EXCLUDED_GENRES.has(g.id))) return false;
   if (track.duration && (track.duration > 900 || track.duration < 45)) return false;
@@ -166,8 +200,17 @@ function randomId() { return Math.floor(Math.random() * MAX_TRACK_ID) + 1; }
 
 // Tire des IDs de titres au hasard jusqu'à trouver un titre jouable d'un artiste jamais vu.
 async function findTrack() {
+  await sharedBlocks;
+  let refused = 0;
   for (let round = 0; round < 25; round++) {
     const results = await Promise.allSettled(Array.from({ length: BATCH }, () => dz('/track/' + randomId())));
+    // « no data » (code 800) est normal : l'ID n'existe pas. Réseau coupé ou quota dépassé (code 4) : on ralentit puis on abandonne.
+    const failures = results.filter(r => r.status === 'rejected' && (r.reason instanceof Error || r.reason?.code === 4)).length;
+    if (failures > BATCH / 2) {
+      if (++refused >= 3) throw new Error('deezer indisponible');
+      await new Promise(r => setTimeout(r, 2000 * refused));
+      continue;
+    }
     const candidates = results
       .filter(r => r.status === 'fulfilled' && r.value.preview && r.value.artist && !seenArtists.has(r.value.artist.id))
       .map(r => r.value);
@@ -177,7 +220,7 @@ async function findTrack() {
       try { album = { ...tr.album, ...(await dz('/album/' + tr.album.id)) }; } catch { continue; } // sans genre ni label, on ne prend pas le risque
       if (!isMusic(tr, album)) continue;
       seenArtists.add(tr.artist.id);
-      return { track: tr, artist: tr.artist };
+      return { track: tr, artist: tr.artist, album };
     }
   }
   throw new Error('rien trouvé');
@@ -202,8 +245,8 @@ function placeholder() {
   return c;
 }
 
-function fill(c, { track, artist }) {
-  c.data = { track, artist };
+function fill(c, { track, artist, album }) {
+  c.data = { track, artist, album };
   const cover = track.album?.cover_xl || track.album?.cover_big || artist.picture_xl || '';
   const year = (track.release_date || track.album?.release_date || '').slice(0, 4);
   c.el.innerHTML = `
@@ -218,6 +261,7 @@ function fill(c, { track, artist }) {
       </div>
     </div>
     <div class="side">
+      <button class="report" aria-label="Pas de la musique" title="Pas de la musique"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg></button>
       <button class="keep" aria-label="Garder"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.5-9.2C1 8.2 3.3 4.5 7 4.5c2 0 3.6 1.1 5 2.8 1.4-1.7 3-2.8 5-2.8 3.7 0 6 3.7 4.5 7.3C19.5 16.4 12 21 12 21z"/></svg></button>
       <button class="next" aria-label="Suivant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
     </div></div>
@@ -226,8 +270,67 @@ function fill(c, { track, artist }) {
   keepBtn.classList.toggle('on', kept.some(k => k.trackId === track.id));
   keepBtn.onclick = e => { e.stopPropagation(); toggleKeep(c, keepBtn); };
   c.el.querySelector('.next').onclick = e => { e.stopPropagation(); go(cards.indexOf(c) + 1); };
+  c.el.querySelector('.report').onclick = e => { e.stopPropagation(); report(c); };
   c.el.querySelector('.cover').onclick = () => togglePlay();
   if (cards.indexOf(c) === current) play(current);
+}
+
+// Retire une carte déjà tirée et la remplace par un nouveau tirage.
+function redraw(c) {
+  c.data = null;
+  c.el.innerHTML = '<div class="spin"></div><div class="loading">TIRAGE</div>';
+  pending++;
+  findTrack().then(d => fill(c, d)).catch(() => { c.failed = true; }).finally(() => pending--);
+}
+
+// --- Signalement « pas de la musique » ---
+async function report(c) {
+  if (!c.data || c.reported) return;
+  c.reported = true;
+  const { track, artist, album } = c.data;
+  const label = normLabel(album?.label);
+
+  // 1. Effet immédiat sur cet appareil : l'artiste et son label ne reviendront plus.
+  blockedArtists.add(String(artist.id));
+  if (!localBlocks.artists.includes(String(artist.id))) localBlocks.artists.push(String(artist.id));
+  if (label && !GENERIC_LABEL.test(label)) {
+    blockedLabels.add(label);
+    if (!localBlocks.labels.includes(label)) localBlocks.labels.push(label);
+  }
+  store.set('blocks', localBlocks);
+  toast('Signalé');
+  go(cards.indexOf(c) + 1);
+  // Les cartes déjà préparées du même artiste ou label sont retirées.
+  cards.forEach((x, i) => { if (i > current && x.data && isBlocked(x.data.track, x.data.album || {})) redraw(x); });
+
+  // 2. Analyse du catalogue de l'artiste : combien de ses albums ressemblent à des ambiances ou des textes lus.
+  let catalogHits = 0;
+  try {
+    const albums = await dz('/artist/' + artist.id + '/albums?limit=50');
+    catalogHits = (albums.data || []).filter(a => SPOKEN.test(a.title) || AMBIENCE.test(a.title)).length;
+  } catch {}
+
+  // 3. Envoi partagé : à partir de 2 appareils, l'artiste et le label sont bloqués pour tout le monde.
+  const clip = (s, n = 400) => String(s ?? '').slice(0, n);
+  fetch(SB_URL + '/rest/v1/sillon_reports', {
+    method: 'POST',
+    headers: { ...SB_HEADERS, Prefer: 'return=minimal' },
+    body: JSON.stringify({
+      device, track_id: track.id, title: clip(track.title), artist_id: artist.id, artist_name: clip(artist.name),
+      album_id: album?.id ?? null, album_title: clip(album?.title), label: clip(album?.label), genre_id: album?.genre_id ?? null,
+      catalog_hits: Math.min(catalogHits, 100),
+    }),
+  }).catch(() => {});
+}
+
+let toastT;
+function toast(text) {
+  let el = document.getElementById('toast');
+  if (!el) { el = document.createElement('div'); el.id = 'toast'; document.body.appendChild(el); }
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => el.classList.remove('show'), 1600);
 }
 
 function topUp() {
