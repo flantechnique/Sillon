@@ -29,6 +29,10 @@ Si Supabase ne répond pas, l'appli fonctionne quand même (pas de liste d'exclu
 - **Apple Music** (iTunes Search API) : extraits seulement, jamais mis en cache ; sur chaque titre Apple, le badge officiel « Listen on Apple Music » non modifié (`badges/`, récupéré sur toolbox.marketingtools.apple.com) avec lien direct vers le titre, et la mention « Provided courtesy of iTunes » ; ~20 requêtes / minute par adresse IP. Les extraits doivent servir à promouvoir le titre, jamais un autre produit.
 - **GitHub Pages** : pas d'usage commercial, ~100 Go de bande passante par mois.
 
+## Mesure d'audience
+
+Anonyme et sans identifiant : chaque téléphone envoie au plus un « passage » par jour (avec la date de sa première visite, pour la rétention par cohortes) et des compteurs groupés (titres écoutés, écoutés jusqu'au bout, gardés, partagés, liens ouverts, écoutes à l'aveugle, signalements). Fonction `sillon_track`, tables `sillon_daily` et `sillon_cohort`, lisibles par l'administrateur seulement. Synthèse : vues `sillon_stats` (par jour) et `sillon_retention` (retour à 7 jours). Désactivable dans « À propos » (toucher le logo).
+
 ## Veille des conditions
 
 Chaque lundi, `.github/workflows/terms.yml` lance `tools/watch-terms.js` : il relit les conditions de Deezer (guidelines, terms of use) et la page de l'API Apple, en garde le texte dans `tools/terms/`, et ouvre une *issue* GitHub (notification par e-mail) si l'une a changé. Le diff du commit montre ce qui a bougé.

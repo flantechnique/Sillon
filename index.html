@@ -209,6 +209,12 @@ header > * { pointer-events: auto; }
 #syncForm input { flex: 1; min-width: 0; background: #fffaf0; color: var(--ink); border: 2px solid var(--ink); border-radius: 99px; padding: 10px 14px; font: inherit; font-size: 14px; }
 #syncForm button { padding: 10px 16px; border-radius: 99px; background: var(--mustard); border: 2px solid var(--ink); box-shadow: var(--sticker); font-weight: 700; font-size: 14px; }
 
+.logo { cursor: pointer; font: inherit; font-family: var(--serif); font-style: italic; font-weight: 700; font-size: 20px; color: var(--ink); }
+.aboutText { margin-top: 12px; font-size: 14px; line-height: 1.55; }
+.aboutText p + p { margin-top: 10px; }
+.optout { display: flex; gap: 10px; align-items: center; margin-top: 16px; padding-top: 14px; border-top: 1.5px dashed var(--line); font-size: 14px; font-weight: 700; cursor: pointer; }
+.optout input { width: 20px; height: 20px; accent-color: var(--tomato); }
+#about .hint a { color: var(--ink-soft); }
 #toast { position: fixed; left: 50%; bottom: calc(28px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px) rotate(-2deg); opacity: 0; transition: .25s; z-index: 30; background: var(--paper); border: 2px solid var(--ink); box-shadow: var(--sticker); padding: 8px 16px; border-radius: 99px; font-size: 14px; font-weight: 700; pointer-events: none; }
 #toast.show { opacity: 1; transform: translate(-50%, 0) rotate(-2deg); }
 
@@ -248,7 +254,7 @@ header > * { pointer-events: auto; }
 </div>
 
 <header>
-  <div class="logo"><i></i>Sillon</div>
+  <button class="logo" id="aboutBtn" data-t-aria="about" aria-label="À propos"><i></i>Sillon</button>
   <div class="hbtns">
     <button class="pill icon" id="blindBtn" data-t-aria="blind" aria-label="Écoute à l'aveugle" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M4 20L20 4"/></svg></button>
     <button class="pill" id="recentBtn" data-t="recent">Récents</button>
@@ -270,6 +276,15 @@ header > * { pointer-events: auto; }
     </div>
     <p class="hint" id="exportHint"></p>
     <div class="backup"><button id="backupSave" data-t="backup">Sauvegarder dans un fichier</button><label><span data-t="restore">Restaurer</span><input type="file" id="backupLoad" accept=".json,application/json" hidden></label></div>
+  </div>
+</div>
+<div id="about" class="sheet">
+  <div class="box">
+    <button class="x" data-close aria-label="Fermer" data-t-aria="close">×</button>
+    <h2>Sillon</h2>
+    <div class="aboutText" data-t="aboutBody"></div>
+    <label class="optout"><input type="checkbox" id="statsToggle"> <span data-t="statsLabel"></span></label>
+    <p class="hint"><a href="https://github.com/flantechnique/Sillon" target="_blank" rel="noopener" data-t="sourceCode"></a></p>
   </div>
 </div>
 <div id="sync">
@@ -306,6 +321,12 @@ const STR = {
     badCode: 'Code invalide', syncOffline: 'Hors ligne — nouvel essai plus tard', synced: d => 'Synchronisé ' + d,
     linkConfirm: code => `Relier cet appareil à ${code} ?\nTitres gardés, récents et artistes entendus seront partagés.`,
     sharedIntro: 'On vous fait écouter',
+    about: 'À propos', sourceCode: 'Code source et contact',
+    statsLabel: 'Compter mes visites, anonymement',
+    aboutBody: `<p>Un titre au hasard, d'un artiste au hasard, tiré dans tout le catalogue. Pas d'algorithme, pas de popularité, jamais deux fois le même artiste.</p>
+      <p><b>Sources.</b> Extraits de 30 secondes fournis par Deezer, et par Apple Music si Deezer ne répond pas. Les titres gardés renvoient vers les plateformes pour une écoute complète.</p>
+      <p><b>Vos données.</b> Pas de compte, pas de cookie, pas de publicité. Vos titres gardés restent sur votre téléphone, sauf si vous activez la synchronisation (code secret, rien de personnel). Les signalements « pas de la musique » envoient seulement les infos du titre.</p>
+      <p><b>Mesure d'audience.</b> Sillon compte, sans aucun identifiant : le nombre de visites par jour, de titres écoutés, gardés et partagés, et la date de votre première visite pour savoir si les gens reviennent. Rien ne permet de vous reconnaître. Vous pouvez le désactiver ci-dessous.</p>`,
     blind: "Écoute à l'aveugle", blindOn: "Écoute à l'aveugle", blindOff: 'Écoute normale', reveal: 'Révéler',
   },
   en: {
@@ -324,6 +345,12 @@ const STR = {
     badCode: 'Invalid code', syncOffline: 'Offline — will retry later', synced: d => 'Synced ' + d,
     linkConfirm: code => `Link this device to ${code}?\nSaved tracks, recent tracks and artists already heard will be shared.`,
     sharedIntro: 'Someone wants you to hear',
+    about: 'About', sourceCode: 'Source code and contact',
+    statsLabel: 'Count my visits, anonymously',
+    aboutBody: `<p>A random track, by a random artist, drawn from the whole catalogue. No algorithm, no popularity, never the same artist twice.</p>
+      <p><b>Sources.</b> 30-second previews provided by Deezer, and by Apple Music when Deezer doesn't answer. Saved tracks link to the platforms for full listening.</p>
+      <p><b>Your data.</b> No account, no cookies, no ads. Your saved tracks stay on your phone unless you turn on sync (a secret code, nothing personal). “Not music” reports only send the track's details.</p>
+      <p><b>Audience measurement.</b> Without any identifier, Sillon counts visits per day, tracks played, saved and shared, and the date of your first visit to see whether people come back. Nothing can identify you. You can turn it off below.</p>`,
     blind: 'Blind listening', blindOn: 'Blind listening', blindOff: 'Normal listening', reveal: 'Reveal',
   },
 }[LANG];
@@ -551,6 +578,7 @@ async function report(c) {
   c.reported = true;
   const { track, artist, album } = c.data;
   toast(t('reported'));
+  bump('reports');
   go(cards.indexOf(c) + 1);
 
   // Analyse du catalogue de l'artiste : combien de ses albums ressemblent à des ambiances ou des textes lus.
@@ -614,6 +642,8 @@ function play(i) {
     audio.src = c.data.track.preview;
     audio.dataset.id = c.data.track.id;
     remember(c);
+    bump('plays');
+    if (c.el.classList.contains('blind')) bump('blind_plays');
     setSession(c);
   }
   audio.play().catch(() => c.el.classList.add('paused'));
@@ -669,7 +699,7 @@ function syncSpin() {
 }
 ['play', 'playing', 'pause', 'ended', 'emptied'].forEach(ev => audio.addEventListener(ev, syncSpin));
 // Fin de l'extrait : on enchaîne, comme une radio (utile écran verrouillé).
-audio.addEventListener('ended', () => go(current + 1));
+audio.addEventListener('ended', () => { bump('completes'); go(current + 1); });
 
 // --- Écran verrouillé, écouteurs, montre : titre, pochette et commandes ---
 function setSession(c) {
@@ -736,7 +766,7 @@ function remember(c) {
 function toggleKept(e) {
   const i = kept.findIndex(k => k.trackId === e.trackId);
   if (i >= 0) { kept.splice(i, 1); keptRemoved[e.trackId] = Date.now(); }
-  else { kept.unshift({ ...e, at: Date.now() }); delete keptRemoved[e.trackId]; }
+  else { kept.unshift({ ...e, at: Date.now() }); delete keptRemoved[e.trackId]; bump('kept'); }
   store.set('kept', kept);
   store.set('keptRemoved', keptRemoved);
   refreshKeepButtons();
@@ -1022,6 +1052,7 @@ const shareUrl = track => `${location.origin}${location.pathname}?t=${encodeURIC
 async function shareTrack(c) {
   if (!c.data) return;
   const { track, artist } = c.data;
+  bump('shares');
   const url = shareUrl(track);
   const text = `${artist.name} – ${track.title}`;
   if (navigator.share) {
@@ -1058,6 +1089,7 @@ function announceShared({ track, artist }) {
 
 const sharedId = new URLSearchParams(location.search).get('t');
 if (sharedId) {
+  queueMicrotask(() => bump('shared_opens')); // une fois le module de mesure (plus bas) initialisé
   history.replaceState(null, '', location.pathname);
   const c = placeholder();
   pending++;
@@ -1067,8 +1099,51 @@ if (sharedId) {
     .finally(() => { pending--; topUp(); });
 }
 
+// --- Mesure d'audience anonyme : compteurs agrégés par jour, aucun identifiant envoyé ---
+// Rétention : chaque téléphone envoie au plus un « passage » par jour avec la date de sa première visite.
+const localDay = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+let statsOn = store.get('stats', true);
+const statCounts = {};
+function bump(k) { if (statsOn) statCounts[k] = (statCounts[k] || 0) + 1; }
+function refOf() {
+  const h = (() => { try { return new URL(document.referrer).hostname; } catch { return ''; } })();
+  if (!h || h === location.hostname) return 'direct';
+  const map = [[/reddit/, 'reddit'], [/ycombinator/, 'hackernews'], [/tiktok/, 'tiktok'], [/instagram/, 'instagram'], [/youtube|youtu\.be/, 'youtube'],
+    [/bsky/, 'bluesky'], [/mastodon|mstdn/, 'mastodon'], [/^t\.co$|twitter|x\.com/, 'x'], [/threads/, 'threads'], [/facebook|fb\./, 'facebook'],
+    [/linkedin|lnkd/, 'linkedin'], [/discord/, 'discord'], [/producthunt/, 'producthunt'], [/google|bing|duckduckgo|qwant|ecosia/, 'search'], [/github/, 'github']];
+  return (map.find(([re]) => re.test(h)) || [, 'other'])[1];
+}
+function flushStats() {
+  if (!statsOn) return;
+  const day = localDay();
+  const newDay = store.get('lastPing', null) !== day;
+  if (!newDay && !Object.keys(statCounts).length) return;
+  let first = store.get('firstDay', null);
+  if (!first) { first = day; store.set('firstDay', first); }
+  const counts = { ...statCounts };
+  if (newDay && matchMedia('(display-mode: standalone)').matches) counts.installed = 1;
+  Object.keys(statCounts).forEach(k => delete statCounts[k]);
+  store.set('lastPing', day);
+  fetch(SB_URL + '/rest/v1/rpc/sillon_track', {
+    method: 'POST', headers: SB_HEADERS, keepalive: true,
+    body: JSON.stringify({ p_day: day, p_first_day: first, p_new_day: newDay, p_ref: first === day ? refOf() : null, p_counts: counts }),
+  }).catch(() => {});
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) flushStats(); });
+setInterval(flushStats, 5 * 60000);
+
+const statsToggle = document.getElementById('statsToggle');
+statsToggle.checked = statsOn;
+statsToggle.onchange = () => {
+  statsOn = statsToggle.checked;
+  store.set('stats', statsOn);
+  if (!statsOn) Object.keys(statCounts).forEach(k => delete statCounts[k]);
+};
+document.getElementById('aboutBtn').onclick = () => document.getElementById('about').classList.add('open');
+
 renderPanel();
 topUp();
+flushStats();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 </body>
