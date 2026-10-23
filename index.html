@@ -13,6 +13,18 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Sillon">
+<meta name="description" content="Un titre au hasard, d'un artiste au hasard. Rien que la musique.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sillon">
+<meta property="og:title" content="Sillon">
+<meta property="og:description" content="Un titre au hasard, d'un artiste au hasard. Rien que la musique.">
+<meta property="og:url" content="https://flantechnique.github.io/Sillon/">
+<meta property="og:image" content="https://flantechnique.github.io/Sillon/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Une platine vinyle turquoise et le titre Sillon">
+<meta property="og:locale" content="fr_FR">
+<meta name="twitter:card" content="summary_large_image">
 <style>
 @font-face { font-family: 'Fraunces'; font-style: normal; font-weight: 400 800; font-display: swap; src: url(fonts/fraunces.woff2) format('woff2'); }
 @font-face { font-family: 'Fraunces'; font-style: italic; font-weight: 400 800; font-display: swap; src: url(fonts/fraunces-italic.woff2) format('woff2'); }
@@ -142,6 +154,7 @@ header > * { pointer-events: auto; }
 #start.drop .vinyl { animation-play-state: running; }
 #start.drop .arm { transform: rotate(0deg); }
 #start h1 { font-family: var(--serif); font-style: italic; font-weight: 750; font-size: clamp(48px, 13vw, 76px); line-height: .9; letter-spacing: -.02em; font-variation-settings: 'SOFT' 100, 'opsz' 144; color: var(--tomato); text-shadow: 3px 3px 0 var(--ink); margin-top: 8px; }
+#start p em { color: var(--ink); font-weight: 600; }
 #start p { font-family: var(--serif); font-size: 17px; line-height: 1.45; color: var(--ink-soft); max-width: 330px; }
 #go { font-weight: 700; font-size: 16px; padding: 14px 26px; border-radius: 99px; background: var(--mustard); border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); transition: transform .12s, box-shadow .12s; }
 #go:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--ink); }
@@ -350,21 +363,26 @@ async function refillApple() {
   return !!res;
 }
 
+// Résultat iTunes -> même forme qu'un titre Deezer.
+function appleEntry(t) {
+  const artist = { id: 'ap:' + t.artistId, rawId: t.artistId, name: t.artistName, link: t.artistViewUrl || t.trackViewUrl };
+  const art = t.artworkUrl100 || '';
+  const track = {
+    id: 'ap:' + t.trackId, rawId: t.trackId, source: 'apple', title: t.trackName, duration: (t.trackTimeMillis || 0) / 1000,
+    preview: t.previewUrl, release_date: t.releaseDate || '', link: t.trackViewUrl, artist,
+    album: { id: t.collectionId, title: t.collectionName || '', cover_xl: art.replace('100x100', '1000x1000'), cover_medium: art.replace('100x100', '250x250') },
+  };
+  return { track, artist, album: { ...track.album, genre_id: null, label: '' } };
+}
+
 async function drawApple() {
   for (let tries = 0; tries < 6; tries++) {
     if (!appleQueue.length && !(await refillApple())) await new Promise(r => setTimeout(r, 3000));
     while (appleQueue.length) {
       const t = appleQueue.pop();
       if (APPLE_EXCLUDED_GENRES.test(t.primaryGenreName || '')) continue;
-      const artist = { id: 'ap:' + t.artistId, rawId: t.artistId, name: t.artistName, link: t.artistViewUrl || t.trackViewUrl };
+      const { track, artist, album } = appleEntry(t);
       if (seenArtists.has(artist.id)) continue;
-      const art = t.artworkUrl100 || '';
-      const track = {
-        id: 'ap:' + t.trackId, rawId: t.trackId, source: 'apple', title: t.trackName, duration: (t.trackTimeMillis || 0) / 1000,
-        preview: t.previewUrl, release_date: t.releaseDate || '', link: t.trackViewUrl, artist,
-        album: { id: t.collectionId, title: t.collectionName || '', cover_xl: art.replace('100x100', '1000x1000'), cover_medium: art.replace('100x100', '250x250') },
-      };
-      const album = { ...track.album, genre_id: null, label: '' };
       if (!isMusic(track, album, blocks)) continue;
       seenArtists.add(artist.id);
       return { track, artist, album };
@@ -429,6 +447,7 @@ function fill(c, { track, artist, album }) {
     </div>
     <div class="side">
       <button class="report" aria-label="Pas de la musique" title="Pas de la musique"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg></button>
+      <button class="share" aria-label="Partager" title="Partager"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
       <button class="keep" aria-label="Garder"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.5-9.2C1 8.2 3.3 4.5 7 4.5c2 0 3.6 1.1 5 2.8 1.4-1.7 3-2.8 5-2.8 3.7 0 6 3.7 4.5 7.3C19.5 16.4 12 21 12 21z"/></svg></button>
       <button class="next" aria-label="Suivant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
     </div></div>
@@ -439,6 +458,7 @@ function fill(c, { track, artist, album }) {
   keepBtn.onclick = e => { e.stopPropagation(); toggleKept(entryOf(c)); };
   c.el.querySelector('.next').onclick = e => { e.stopPropagation(); go(cards.indexOf(c) + 1); };
   c.el.querySelector('.report').onclick = e => { e.stopPropagation(); report(c); };
+  c.el.querySelector('.share').onclick = e => { e.stopPropagation(); shareTrack(c); };
   c.el.querySelector('.cover').onclick = () => togglePlay();
   if (cards.indexOf(c) === current) play(current);
   else if (cards.indexOf(c) === current + 1) preloadNext();
@@ -890,6 +910,58 @@ document.getElementById('go').onclick = () => {
   else play(current);
   maybeRecap();
 };
+// --- Partage d'un titre : le lien ouvre Sillon sur ce titre, puis le hasard reprend ---
+// ?t=123 pour Deezer, ?t=ap:123 pour Apple Music.
+const shareUrl = track => `${location.origin}${location.pathname}?t=${encodeURIComponent(track.id)}`;
+
+async function shareTrack(c) {
+  if (!c.data) return;
+  const { track, artist } = c.data;
+  const url = shareUrl(track);
+  const text = `${artist.name} – ${track.title}`;
+  if (navigator.share) {
+    try { await navigator.share({ title: 'Sillon', text, url }); return; }
+    catch (e) { if (e.name === 'AbortError') return; }
+  }
+  toast(await copyText(`${text}\n${url}`) ? 'Lien copié' : 'Copie impossible');
+}
+
+async function loadShared(id) {
+  if (/^ap:\d+$/.test(id)) {
+    const res = await fetch(`https://itunes.apple.com/lookup?country=${APPLE_COUNTRY}&id=${id.slice(3)}`).then(r => r.json());
+    const t = (res.results || []).find(x => x.kind === 'song' && x.previewUrl);
+    return t ? appleEntry(t) : null;
+  }
+  if (/^\d+$/.test(id)) {
+    const tr = await dz('/track/' + id);
+    return tr.preview ? { track: tr, artist: tr.artist, album: tr.album } : null;
+  }
+  return null;
+}
+
+// L'accueil annonce le titre partagé : sa pochette sur l'étiquette du disque.
+function announceShared({ track, artist }) {
+  const start = document.getElementById('start');
+  if (!start) return;
+  const cover = track.album?.cover_xl || track.album?.cover_medium || '';
+  const label = start.querySelector('.label');
+  label.style.backgroundImage = `url('${cover}')`;
+  label.style.backgroundSize = 'cover';
+  label.querySelector('span').remove();
+  start.querySelector('p').innerHTML = `On vous fait écouter<br><em>${esc(track.title)}</em> · ${esc(artist.name)}`;
+}
+
+const sharedId = new URLSearchParams(location.search).get('t');
+if (sharedId) {
+  history.replaceState(null, '', location.pathname);
+  const c = placeholder();
+  pending++;
+  loadShared(sharedId)
+    .then(d => { if (!d) throw new Error('introuvable'); seenArtists.add(d.artist.id); fill(c, d); announceShared(d); })
+    .catch(() => findTrack().then(d => fill(c, d)).catch(() => { c.failed = true; }))
+    .finally(() => { pending--; topUp(); });
+}
+
 renderPanel();
 topUp();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
