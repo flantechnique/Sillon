@@ -22,7 +22,7 @@
 
 ## Infos / Facts
 
-- Lien / Link : https://flantechnique.github.io/Sillon/
+- Lien / Link : https://sillon.cloud/
 - Lancement / Launch : 2026
 - Prix / Price : gratuit, sans publicité / free, no ads
 - Plateforme / Platform : appli web installable (PWA), téléphone et ordinateur / installable web app, phone and desktop

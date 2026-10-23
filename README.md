@@ -58,7 +58,7 @@ Interface en français si le téléphone est en français, en anglais sinon (dic
 
 ## Kit presse
 
-`press/` : logos (PNG, SVG), visuels réseaux FR/EN, captures d'écran FR/EN, textes de présentation (`press/textes.md`) et archive `press/sillon-kit-presse.zip`. Page en ligne : https://flantechnique.github.io/Sillon/press/
+`press/` : logos (PNG, SVG), visuels réseaux FR/EN, captures d'écran FR/EN, textes de présentation (`press/textes.md`) et archive `press/sillon-kit-presse.zip`. Page en ligne : https://sillon.cloud/press/
 
 ## Lancer en local
 
