@@ -29,6 +29,12 @@ Si Supabase ne répond pas, l'appli fonctionne quand même (pas de liste d'exclu
 - **Apple Music** (iTunes Search API) : extraits seulement, crédit « Apple Music » avec lien sur chaque titre, ~20 requêtes / minute par adresse IP.
 - **GitHub Pages** : pas d'usage commercial, ~100 Go de bande passante par mois.
 
+## Veille des conditions
+
+Chaque lundi, `.github/workflows/terms.yml` lance `tools/watch-terms.js` : il relit les conditions de Deezer (guidelines, terms of use) et la page de l'API Apple, en garde le texte dans `tools/terms/`, et ouvre une *issue* GitHub (notification par e-mail) si l'une a changé. Le diff du commit montre ce qui a bougé.
+
+Point clé des conditions Deezer (section IV) : usage **strictement non commercial**. Aucun revenu, publicité, don, lien affilié ni contrepartie lié au service ou aux titres.
+
 ## Plan B
 
 Tout est portable : l'appli ne dépend que de chemins relatifs.

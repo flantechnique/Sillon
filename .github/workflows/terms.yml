@@ -1,0 +1,43 @@
+name: Veille des conditions
+
+on:
+  schedule:
+    - cron: '23 6 * * 1' # chaque lundi matin
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Lecture des pages
+        id: watch
+        run: |
+          set +e
+          node tools/watch-terms.js
+          code=$?
+          if [ $code -eq 2 ]; then echo "changed=true" >> "$GITHUB_OUTPUT"; elif [ $code -ne 0 ]; then exit $code; fi
+      - name: Enregistrement et alerte
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "sillon-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/terms
+          git diff --cached --quiet && exit 0
+          git commit -m "Veille : conditions mises à jour ($(date -u +%F))"
+          git pull --rebase origin main
+          git push
+          if [ "${{ steps.watch.outputs.changed }}" = "true" ]; then
+            gh issue create --title "Conditions modifiées : $(tr '\n' ' ' < tools/terms/CHANGED)" \
+              --body "Une page de conditions d'utilisation a changé. Comparer avec le commit précédent : $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commits/main/tools/terms"
+          fi

@@ -208,6 +208,26 @@ header > * { pointer-events: auto; }
 #toast { position: fixed; left: 50%; bottom: calc(28px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px) rotate(-2deg); opacity: 0; transition: .25s; z-index: 30; background: var(--paper); border: 2px solid var(--ink); box-shadow: var(--sticker); padding: 8px 16px; border-radius: 99px; font-size: 14px; font-weight: 700; pointer-events: none; }
 #toast.show { opacity: 1; transform: translate(-50%, 0) rotate(-2deg); }
 
+
+/* --- Écoute à l'aveugle --- */
+.pill.icon { width: 38px; height: 38px; padding: 0; display: grid; place-items: center; }
+.pill.icon svg { width: 20px; height: 20px; }
+.reveal { display: none; align-items: center; gap: 12px; font-weight: 700; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--fg); }
+.reveal b { font-family: var(--serif); font-style: italic; font-size: 54px; line-height: .9; letter-spacing: 0; text-transform: none; }
+.reveal span { border-bottom: 2px solid currentColor; padding-bottom: 2px; }
+.card.blind .reveal { display: inline-flex; }
+.card.blind .title, .card.blind .artist, .card.blind .sub, .card.blind .src { display: none; }
+.card.blind .cover, .card.blind .label { background-image: none !important; }
+.card.blind .cover { background: repeating-linear-gradient(135deg, var(--ac) 0 14px, color-mix(in srgb, var(--ac) 82%, #000) 14px 28px) !important; }
+.card.blind .cover::before { content: '?'; position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--serif); font-style: italic; font-weight: 750; font-size: calc(var(--s) * .55); color: var(--paper); text-shadow: 4px 4px 0 var(--ink); }
+.card.blind .label { background: var(--paper) !important; }
+@media (max-width: 400px) {
+  .logo { font-size: 17px; padding-right: 10px; }
+  .hbtns { gap: 6px; }
+  .pill { padding: 7px 10px; font-size: 12px; }
+  .pill.icon { width: 34px; height: 34px; padding: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .vinyl { animation: none; }
   .disc, .arm, #start { transition: none; }
@@ -226,6 +246,7 @@ header > * { pointer-events: auto; }
 <header>
   <div class="logo"><i></i>Sillon</div>
   <div class="hbtns">
+    <button class="pill icon" id="blindBtn" data-t-aria="blind" aria-label="Écoute à l'aveugle" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M4 20L20 4"/></svg></button>
     <button class="pill" id="recentBtn" data-t="recent">Récents</button>
     <button class="pill" id="keptBtn"><span data-t="kept">Gardés</span> <span id="keptN"></span></button>
   </div>
@@ -281,6 +302,7 @@ const STR = {
     badCode: 'Code invalide', syncOffline: 'Hors ligne — nouvel essai plus tard', synced: d => 'Synchronisé ' + d,
     linkConfirm: code => `Relier cet appareil à ${code} ?\nTitres gardés, récents et artistes entendus seront partagés.`,
     sharedIntro: 'On vous fait écouter',
+    blind: "Écoute à l'aveugle", blindOn: "Écoute à l'aveugle", blindOff: 'Écoute normale', reveal: 'Révéler',
   },
   en: {
     tagline: 'A random track, by a random artist.<br>Nothing but the music.',
@@ -298,6 +320,7 @@ const STR = {
     badCode: 'Invalid code', syncOffline: 'Offline — will retry later', synced: d => 'Synced ' + d,
     linkConfirm: code => `Link this device to ${code}?\nSaved tracks, recent tracks and artists already heard will be shared.`,
     sharedIntro: 'Someone wants you to hear',
+    blind: 'Blind listening', blindOn: 'Blind listening', blindOff: 'Normal listening', reveal: 'Reveal',
   },
 }[LANG];
 const t = (k, ...a) => typeof STR[k] === 'function' ? STR[k](...a) : STR[k];
@@ -485,6 +508,7 @@ function fill(c, { track, artist, album }) {
       <div class="cover" style="background-image:url('${esc(cover)}')"><div class="playIcon"><i><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l15 8-15 8z"/></svg></i></div></div>
     </div>
     <div class="meta"><div class="txt">
+      <button class="reveal"><b>?</b><span>${t('reveal')}</span></button>
       <div class="title">${esc(track.title)}</div>
       <div class="artist">${esc(artist.name)}</div>
       <div class="sub">
@@ -500,9 +524,11 @@ function fill(c, { track, artist, album }) {
     </div></div>
     <a class="src" href="${esc(track.link || artist.link)}" target="_blank" rel="noopener">${t('preview')} · ${SOURCE_NAMES[track.source || 'deezer']}</a>`;
   c.el.classList.toggle('current', cards.indexOf(c) === current);
+  c.el.classList.toggle('blind', blindMode && !c.revealed);
+  c.el.querySelector('.reveal').onclick = e => { e.stopPropagation(); reveal(c); };
   const keepBtn = c.el.querySelector('.keep');
   keepBtn.classList.toggle('on', kept.some(k => k.trackId === track.id));
-  keepBtn.onclick = e => { e.stopPropagation(); toggleKept(entryOf(c)); };
+  keepBtn.onclick = e => { e.stopPropagation(); reveal(c); toggleKept(entryOf(c)); };
   c.el.querySelector('.next').onclick = e => { e.stopPropagation(); go(cards.indexOf(c) + 1); };
   c.el.querySelector('.report').onclick = e => { e.stopPropagation(); report(c); };
   c.el.querySelector('.share').onclick = e => { e.stopPropagation(); shareTrack(c); };
@@ -642,12 +668,37 @@ audio.addEventListener('ended', () => go(current + 1));
 function setSession(c) {
   if (!('mediaSession' in navigator)) return;
   const { track, artist } = c.data;
+  if (c.el.classList.contains('blind')) { // à l'aveugle : rien sur l'écran verrouillé non plus
+    navigator.mediaSession.metadata = new MediaMetadata({ title: '?', artist: 'Sillon', album: '', artwork: [{ src: 'icon-512.png', sizes: '512x512', type: 'image/png' }] });
+    return;
+  }
   const cover = track.album?.cover_xl || track.album?.cover_medium || '';
   navigator.mediaSession.metadata = new MediaMetadata({
     title: track.title, artist: artist.name, album: track.album?.title || '',
     artwork: cover ? [{ src: cover, sizes: '1000x1000', type: 'image/jpeg' }] : [],
   });
 }
+
+// --- Écoute à l'aveugle : pochette, titre et artiste cachés jusqu'à ce qu'on les révèle ou qu'on garde le titre ---
+let blindMode = store.get('blind', false);
+function reveal(c) {
+  if (!c.data || c.revealed) return;
+  c.revealed = true;
+  const wasBlind = c.el.classList.contains('blind');
+  c.el.classList.remove('blind');
+  if (wasBlind && cards.indexOf(c) === current) setSession(c);
+}
+function setBlind(on) {
+  blindMode = on;
+  store.set('blind', on);
+  const btn = document.getElementById('blindBtn');
+  btn.classList.toggle('on', on);
+  btn.setAttribute('aria-pressed', on);
+  cards.forEach(c => c.el.classList.toggle('blind', on && !!c.data && !c.revealed));
+  if (cards[current]?.data) setSession(cards[current]);
+}
+document.getElementById('blindBtn').onclick = () => { setBlind(!blindMode); toast(t(blindMode ? 'blindOn' : 'blindOff')); };
+setBlind(blindMode);
 if ('mediaSession' in navigator) {
   const actions = { play: () => togglePlay(true), pause: () => togglePlay(false), nexttrack: () => go(current + 1), previoustrack: () => go(current - 1) };
   for (const [k, fn] of Object.entries(actions)) try { navigator.mediaSession.setActionHandler(k, fn); } catch {}
