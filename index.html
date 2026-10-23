@@ -215,6 +215,7 @@ header > * { pointer-events: auto; }
 .optout { display: flex; gap: 10px; align-items: center; margin-top: 16px; padding-top: 14px; border-top: 1.5px dashed var(--line); font-size: 14px; font-weight: 700; cursor: pointer; }
 .optout input { width: 20px; height: 20px; accent-color: var(--tomato); }
 #about .hint a { color: var(--ink-soft); }
+#about .contact a[href^='mailto'] { color: var(--tomato); font-weight: 700; }
 #toast { position: fixed; left: 50%; bottom: calc(28px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px) rotate(-2deg); opacity: 0; transition: .25s; z-index: 30; background: var(--paper); border: 2px solid var(--ink); box-shadow: var(--sticker); padding: 8px 16px; border-radius: 99px; font-size: 14px; font-weight: 700; pointer-events: none; }
 #toast.show { opacity: 1; transform: translate(-50%, 0) rotate(-2deg); }
 
@@ -284,7 +285,7 @@ header > * { pointer-events: auto; }
     <h2>Sillon</h2>
     <div class="aboutText" data-t="aboutBody"></div>
     <label class="optout"><input type="checkbox" id="statsToggle"> <span data-t="statsLabel"></span></label>
-    <p class="hint"><a href="https://github.com/flantechnique/Sillon" target="_blank" rel="noopener" data-t="sourceCode"></a></p>
+    <p class="hint contact"><span data-t="contact"></span> <a href="mailto:flantechnique@proton.me">flantechnique@proton.me</a> · <a href="https://github.com/flantechnique/Sillon" target="_blank" rel="noopener" data-t="sourceCode"></a></p>
   </div>
 </div>
 <div id="sync">
@@ -321,7 +322,7 @@ const STR = {
     badCode: 'Code invalide', syncOffline: 'Hors ligne — nouvel essai plus tard', synced: d => 'Synchronisé ' + d,
     linkConfirm: code => `Relier cet appareil à ${code} ?\nTitres gardés, récents et artistes entendus seront partagés.`,
     sharedIntro: 'On vous fait écouter',
-    about: 'À propos', sourceCode: 'Code source et contact',
+    about: 'À propos', sourceCode: 'Code source', contact: 'Contact :',
     statsLabel: 'Compter mes visites, anonymement',
     aboutBody: `<p>Un titre au hasard, d'un artiste au hasard, tiré dans tout le catalogue. Pas d'algorithme, pas de popularité, jamais deux fois le même artiste.</p>
       <p><b>Sources.</b> Extraits de 30 secondes fournis par Deezer, et par Apple Music si Deezer ne répond pas. Les titres gardés renvoient vers les plateformes pour une écoute complète.</p>
@@ -345,7 +346,7 @@ const STR = {
     badCode: 'Invalid code', syncOffline: 'Offline — will retry later', synced: d => 'Synced ' + d,
     linkConfirm: code => `Link this device to ${code}?\nSaved tracks, recent tracks and artists already heard will be shared.`,
     sharedIntro: 'Someone wants you to hear',
-    about: 'About', sourceCode: 'Source code and contact',
+    about: 'About', sourceCode: 'Source code', contact: 'Contact:',
     statsLabel: 'Count my visits, anonymously',
     aboutBody: `<p>A random track, by a random artist, drawn from the whole catalogue. No algorithm, no popularity, never the same artist twice.</p>
       <p><b>Sources.</b> 30-second previews provided by Deezer, and by Apple Music when Deezer doesn't answer. Saved tracks link to the platforms for full listening.</p>
