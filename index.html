@@ -694,7 +694,7 @@ function fill(c, { track, artist, album }) {
   c.el.classList.toggle('current', cards.indexOf(c) === current);
   c.el.classList.toggle('daily', !!c.daily);
   if (c.daily && guesses()[daily.day]) { c.revealed = true; showResult(c); } // déjà joué aujourd'hui
-  c.el.classList.toggle('blind', (blindMode || c.daily) && !c.revealed);
+  c.el.classList.toggle('blind', !!((blindMode || c.daily) && !c.revealed)); // toggle(…, undefined) inverserait la classe
   labelCard(c);
   c.el.querySelectorAll('.chips button').forEach(b => b.onclick = e => { e.stopPropagation(); pickGuess(c, b); });
   c.el.querySelector('.reveal').onclick = e => { e.stopPropagation(); reveal(c); };
@@ -949,7 +949,7 @@ function setBlind(on) {
   const btn = document.getElementById('blindBtn');
   btn.classList.toggle('on', on);
   btn.setAttribute('aria-pressed', on);
-  cards.forEach(c => { c.el.classList.toggle('blind', (on || c.daily) && !!c.data && !c.revealed); labelCard(c); });
+  cards.forEach(c => { c.el.classList.toggle('blind', !!((on || c.daily) && c.data && !c.revealed)); labelCard(c); });
   if (cards[current]?.data) setSession(cards[current]);
 }
 document.getElementById('blindBtn').onclick = () => { setBlind(!blindMode); toast(t(blindMode ? 'blindOn' : 'blindOff')); };
