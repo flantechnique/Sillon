@@ -101,8 +101,9 @@ async function main() {
   const kept = [...fresh, ...old.filter(r => !isBlocked({ artist: { id: r.a } }, { label: r.l }, blocks))].slice(0, POOL_MAX);
   for (let i = kept.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [kept[i], kept[j]] = [kept[j], kept[i]]; }
 
-  fs.rmSync(POOL_DIR, { recursive: true, force: true });
+  // On remplace les morceaux de la réserve, sans toucher au titre du jour (daily.json)
   fs.mkdirSync(POOL_DIR, { recursive: true });
+  for (const f of fs.readdirSync(POOL_DIR)) if (/^\d+\.json$/.test(f)) fs.rmSync(path.join(POOL_DIR, f));
   const chunks = Math.ceil(kept.length / CHUNK);
   for (let n = 0; n < chunks; n++) fs.writeFileSync(path.join(POOL_DIR, n + '.json'), JSON.stringify(kept.slice(n * CHUNK, (n + 1) * CHUNK)));
   fs.writeFileSync(path.join(POOL_DIR, 'index.json'), JSON.stringify({ updated: new Date().toISOString(), count: kept.length, chunks }));

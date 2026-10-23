@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Sillon · tableau de bord</title>
+<link rel="icon" href="icon-192.png">
+<style>
+@font-face { font-family: 'Fraunces'; font-style: normal; font-weight: 400 800; font-display: swap; src: url(fonts/fraunces.woff2) format('woff2'); }
+@font-face { font-family: 'Fraunces'; font-style: italic; font-weight: 400 800; font-display: swap; src: url(fonts/fraunces-italic.woff2) format('woff2'); }
+@font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 400 700; font-display: swap; src: url(fonts/dmsans.woff2) format('woff2'); }
+:root {
+  --paper: #f4e9d4; --card: #fbf4e6; --ink: #241b14; --ink-soft: #6b5a4a; --muted: #8a7867;
+  --tomato: #e4572e; --mustard: #e9b44c; --teal: #2a9d8f; --line: rgba(36, 27, 20, .14);
+  --serif: 'Fraunces', Georgia, serif; --sans: 'DM Sans', system-ui, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--paper); color: var(--ink); font: 15px/1.45 var(--sans); padding: 28px 16px 60px; }
+main { max-width: 1040px; margin: 0 auto; }
+h1 { font: italic 750 34px/1 var(--serif); color: var(--tomato); text-shadow: 2px 2px 0 var(--ink); }
+h2 { font: 700 20px/1.2 var(--serif); margin: 36px 0 12px; }
+.top { display: flex; flex-wrap: wrap; gap: 14px; justify-content: space-between; align-items: center; }
+.seg { display: inline-flex; border: 2px solid var(--ink); border-radius: 99px; overflow: hidden; background: var(--card); }
+.seg button { font: 700 13px var(--sans); padding: 7px 14px; border: 0; background: none; color: var(--ink); cursor: pointer; }
+.seg button.on { background: var(--ink); color: var(--paper); }
+.note { color: var(--muted); font-size: 13px; margin-top: 6px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-top: 22px; }
+.tile { background: var(--card); border: 2px solid var(--ink); border-radius: 14px; box-shadow: 3px 3px 0 var(--ink); padding: 12px 14px; }
+.tile b { display: block; font: 700 30px/1.1 var(--serif); font-variant-numeric: tabular-nums; }
+.tile span { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+.tile small { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.panel { background: var(--card); border: 2px solid var(--ink); border-radius: 14px; box-shadow: 3px 3px 0 var(--ink); padding: 16px; position: relative; }
+.chart svg { display: block; width: 100%; height: 240px; overflow: visible; }
+.chart .grid line { stroke: var(--line); }
+.chart .axis text { fill: var(--muted); font: 11px var(--sans); }
+.chart rect.bar { fill: var(--teal); }
+.chart rect.hit { fill: transparent; cursor: default; }
+.chart rect.hit:hover + rect.bar, .chart g.on rect.bar { fill: #1f7a6f; }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--paper); font-size: 12px; padding: 7px 10px; border-radius: 8px; white-space: nowrap; opacity: 0; transition: opacity .1s; }
+.tip b { font-size: 13px; }
+.hbars { display: grid; grid-template-columns: max-content 1fr max-content; gap: 6px 12px; align-items: center; }
+.hbars div.bar { height: 14px; background: var(--teal); border-radius: 0 4px 4px 0; min-width: 2px; }
+.hbars .n { font-variant-numeric: tabular-nums; font-weight: 700; text-align: right; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); padding: 6px 8px; border-bottom: 2px solid var(--ink); }
+td { padding: 7px 8px; border-bottom: 1px dashed var(--line); vertical-align: top; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+td a { color: var(--ink); }
+.scroll { overflow-x: auto; }
+.empty { color: var(--muted); font-style: italic; padding: 8px 0; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
+#login { max-width: 420px; margin: 18vh auto 0; text-align: center; }
+#login form { display: flex; gap: 8px; margin-top: 18px; }
+#login input { flex: 1; min-width: 0; padding: 10px 14px; border: 2px solid var(--ink); border-radius: 99px; background: var(--card); font: inherit; }
+#login button, .btn { padding: 10px 16px; border: 2px solid var(--ink); border-radius: 99px; background: var(--mustard); font: 700 14px var(--sans); cursor: pointer; box-shadow: 2px 2px 0 var(--ink); }
+.btn.light { background: var(--card); font-size: 12px; padding: 6px 12px; }
+#err { color: var(--tomato); font-weight: 700; margin-top: 12px; min-height: 1.4em; }
+:focus-visible { outline: 3px solid var(--tomato); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div id="login" hidden>
+  <h1>Sillon</h1>
+  <p class="note">Tableau de bord privé. Ouvrez le lien secret, ou collez la clé.</p>
+  <form id="loginForm"><input id="key" type="password" autocomplete="off" aria-label="Clé"><button>Ouvrir</button></form>
+  <p id="err"></p>
+</div>
+
+<main id="app" hidden>
+  <div class="top">
+    <h1>Sillon</h1>
+    <div class="seg" id="range"><button data-d="7">7 jours</button><button data-d="30">30 jours</button><button data-d="90">90 jours</button></div>
+  </div>
+  <p class="note" id="updated"></p>
+  <div class="tiles" id="tiles"></div>
+
+  <h2>Visites par jour</h2>
+  <div class="panel chart" id="visits"></div>
+
+  <div class="two">
+    <div><h2>D'où viennent les nouveaux</h2><div class="panel" id="refs"></div></div>
+    <div><h2>Reviennent-ils ?</h2><div class="panel scroll" id="retention"></div></div>
+  </div>
+
+  <h2>Signalements « pas de la musique »</h2>
+  <p class="note">Ils servent seulement à améliorer le filtre : on cherche les fermes à contenu (un même label, beaucoup de titres signalés), jamais un artiste à bannir.</p>
+  <div class="two" style="margin-top:12px">
+    <div class="panel scroll" id="byLabel"></div>
+    <div class="panel scroll" id="blocks"></div>
+  </div>
+  <div class="panel scroll" id="reports" style="margin-top:16px"></div>
+
+  <p class="note" style="margin-top:28px"><button class="btn light" id="logout">Oublier la clé sur cet appareil</button></p>
+</main>
+
+<script>
+const SB_URL = 'https://nqigjixiqtaavfscqhag.supabase.co';
+const SB_KEY = 'sb_publishable_il0mHmr3JCISQaX-QeevDg_tKOmG3E4';
+const KEY_STORE = 'sillon.adminKey';
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmt = n => n == null || isNaN(n) ? '–' : Math.round(n).toLocaleString('fr-FR');
+const pct = (a, b) => b ? Math.round(100 * a / b) + ' %' : '–';
+const dayLabel = d => new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+
+// La clé arrive par le lien (#k=…), jamais envoyée au serveur de la page ; elle reste ensuite sur cet appareil.
+const fromHash = location.hash.match(/k=([\w-]+)/);
+if (fromHash) { try { localStorage.setItem(KEY_STORE, fromHash[1]); } catch {} history.replaceState(null, '', location.pathname); }
+const getKey = () => { try { return localStorage.getItem(KEY_STORE); } catch { return null; } };
+
+let data = null, days = 7;
+
+async function load(key) {
+  const r = await fetch(SB_URL + '/rest/v1/rpc/sillon_admin_data', {
+    method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_secret: key }),
+  });
+  if (!r.ok) throw new Error(r.status === 401 || r.status === 403 ? 'Clé refusée.' : 'Erreur ' + r.status);
+  return r.json();
+}
+
+async function start() {
+  const key = getKey();
+  if (!key) { $('login').hidden = false; return; }
+  try {
+    data = await load(key);
+    $('login').hidden = true; $('app').hidden = false;
+    $('updated').textContent = 'Données au ' + new Date().toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' }) + '. Jours comptés à l\'heure du téléphone des visiteurs.';
+    render();
+  } catch (e) {
+    $('login').hidden = false; $('app').hidden = true; $('err').textContent = e.message;
+  }
+}
+
+$('loginForm').onsubmit = e => {
+  e.preventDefault();
+  const v = $('key').value.trim().replace(/^.*k=/, '');
+  if (!v) return;
+  try { localStorage.setItem(KEY_STORE, v); } catch {}
+  $('key').value = ''; $('err').textContent = '';
+  start();
+};
+$('logout').onclick = () => { try { localStorage.removeItem(KEY_STORE); } catch {} location.reload(); };
+document.querySelectorAll('#range button').forEach(b => b.onclick = () => { days = +b.dataset.d; render(); });
+
+// Une ligne par jour, de la plus ancienne à aujourd'hui, avec tous les compteurs (0 si absent).
+function series(n) {
+  const by = {};
+  for (const { day, metric, value } of data.daily) (by[day] ||= {})[metric] = value;
+  const out = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 86400000).toLocaleDateString('sv-SE');
+    out.push({ day: d, ...(by[d] || {}) });
+  }
+  return out;
+}
+const sum = (rows, k) => rows.reduce((s, r) => s + (r[k] || 0), 0);
+
+function render() {
+  document.querySelectorAll('#range button').forEach(b => b.classList.toggle('on', +b.dataset.d === days));
+  const rows = series(days);
+  const S = k => sum(rows, k);
+  const tiles = [
+    ['Visites', fmt(S('devices')), 'un appareil compté une fois par jour'],
+    ['Nouveaux', fmt(S('new_devices')), 'première visite'],
+    ['Titres écoutés', fmt(S('plays')), S('devices') ? (S('plays') / S('devices')).toFixed(1).replace('.', ',') + ' par visite' : ''],
+    ['Jusqu\'au bout', pct(S('completes'), S('plays')), 'des extraits écoutés en entier'],
+    ['Gardés', fmt(S('kept')), S('plays') ? (100 * S('kept') / S('plays')).toFixed(1).replace('.', ',') + ' pour 100 écoutes' : ''],
+    ['Partages', fmt(S('shares') + S('story_shares')), `${fmt(S('shares'))} liens, ${fmt(S('story_shares'))} images`],
+    ['Liens ouverts', fmt(S('shared_opens')), 'titres partagés reçus'],
+    ['Titre du jour', fmt(S('daily_opens')), 'ouvertures'],
+    ['À l\'aveugle', pct(S('blind_plays'), S('plays')), 'des écoutes'],
+    ['Appli installée', pct(S('installed'), S('devices')), 'des visites'],
+    ['Signalements', fmt(S('reports')), 'pas de la musique'],
+  ];
+  $('tiles').innerHTML = tiles.map(([l, v, s]) => `<div class="tile"><span>${l}</span><b>${v}</b><small>${s}</small></div>`).join('');
+  renderVisits(rows);
+  renderRefs(rows);
+  renderRetention();
+  renderReports();
+}
+
+function renderVisits(rows) {
+  const el = $('visits');
+  const W = Math.max(320, el.clientWidth - 32), H = 240, L = 34, B = 24, T = 8;
+  const max = Math.max(4, ...rows.map(r => r.devices || 0));
+  const raw = max / 4, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 5, 10].find(m => m * mag >= raw) * mag; // graduations rondes : 1, 2, 5, 10…
+  const top = Math.ceil(max / step) * step;
+  const y = v => T + (H - T - B) * (1 - v / top);
+  const bw = (W - L) / rows.length, gap = Math.min(6, bw * .25);
+  const every = Math.ceil(rows.length / 8);
+  let grid = '';
+  for (let v = 0; v <= top; v += step) grid += `<line x1="${L}" x2="${W}" y1="${y(v)}" y2="${y(v)}"/>`;
+  let axis = '';
+  for (let v = 0; v <= top; v += step) axis += `<text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${fmt(v)}</text>`;
+  rows.forEach((r, i) => { if ((rows.length - 1 - i) % every === 0) axis += `<text x="${L + i * bw + bw / 2}" y="${H - 6}" text-anchor="middle">${dayLabel(r.day)}</text>`; });
+  const bars = rows.map((r, i) => {
+    const v = r.devices || 0, x = L + i * bw + gap / 2, w = bw - gap, h = Math.max(0, y(0) - y(v));
+    // barre arrondie en haut seulement, posée sur la ligne de base
+    const rad = Math.min(4, w / 2, h);
+    const d = h ? `M${x},${y(0)}V${y(v) + rad}q0,-${rad} ${rad},-${rad}H${x + w - rad}q${rad},0 ${rad},${rad}V${y(0)}Z` : '';
+    return `<g data-i="${i}"><rect class="hit" x="${L + i * bw}" y="${T}" width="${bw}" height="${H - T - B}"/><path class="bar" d="${d}" fill="#2a9d8f"/></g>`;
+  }).join('');
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Visites par jour"><g class="grid">${grid}</g><g class="axis">${axis}</g>${bars}</svg><div class="tip"></div>`;
+  const tip = el.querySelector('.tip');
+  el.querySelectorAll('g[data-i]').forEach(g => {
+    g.onmouseenter = () => {
+      const r = rows[+g.dataset.i];
+      g.querySelector('.bar').setAttribute('fill', '#1f7a6f');
+      tip.innerHTML = `<b>${dayLabel(r.day)}</b><br>${fmt(r.devices || 0)} visites · ${fmt(r.new_devices || 0)} nouveaux<br>${fmt(r.plays || 0)} titres écoutés · ${fmt(r.kept || 0)} gardés`;
+      const bx = (+g.dataset.i + .5) * bw + L;
+      tip.style.left = Math.min(Math.max(16, bx * el.clientWidth / W - tip.offsetWidth / 2), el.clientWidth - tip.offsetWidth - 16) + 'px';
+      tip.style.top = '8px';
+      tip.style.opacity = 1;
+    };
+    g.onmouseleave = () => { g.querySelector('.bar').setAttribute('fill', '#2a9d8f'); tip.style.opacity = 0; };
+  });
+}
+
+const REF_NAMES = { direct: 'Direct ou appli', reddit: 'Reddit', hackernews: 'Hacker News', tiktok: 'TikTok', instagram: 'Instagram', youtube: 'YouTube', bluesky: 'Bluesky', mastodon: 'Mastodon', x: 'X', threads: 'Threads', facebook: 'Facebook', linkedin: 'LinkedIn', discord: 'Discord', producthunt: 'Product Hunt', search: 'Moteurs de recherche', github: 'GitHub', other: 'Autres sites' };
+function renderRefs(rows) {
+  const refs = Object.keys(REF_NAMES).map(k => [REF_NAMES[k], sum(rows, 'ref:' + k)]).filter(([, n]) => n).sort((a, b) => b[1] - a[1]);
+  const max = Math.max(1, ...refs.map(r => r[1]));
+  $('refs').innerHTML = refs.length
+    ? `<div class="hbars">${refs.map(([n, v]) => `<span>${n}</span><div class="bar" style="width:${100 * v / max}%" title="${fmt(v)}"></div><span class="n">${fmt(v)}</span>`).join('')}</div><p class="note">Les liens depuis Instagram et TikTok arrivent souvent sans provenance : ils comptent alors en « direct ».</p>`
+    : '<p class="empty">Pas encore de nouveaux visiteurs sur la période.</p>';
+}
+
+function renderRetention() {
+  const r = data.retention.slice(0, 30);
+  $('retention').innerHTML = r.length
+    ? `<table><thead><tr><th>Première visite</th><th class="num">Nouveaux</th><th class="num">Revenus sous 7 j</th><th class="num">Part</th></tr></thead><tbody>${r.map(c => `<tr><td>${dayLabel(c.cohorte)}</td><td class="num">${fmt(c.nouveaux)}</td><td class="num">${fmt(c.revenus_j7)}</td><td class="num">${c.pct_j7 == null ? '–' : Math.round(c.pct_j7) + ' %'}</td></tr>`).join('')}</tbody></table>`
+    : '<p class="empty">Rien encore.</p>';
+}
+
+const GENRES = { 0: 'Tous', 85: 'Alternative', 95: 'Jeunesse', 106: 'Électro', 113: 'Dance', 116: 'Rap', 129: 'Jazz', 132: 'Pop', 144: 'Reggae', 152: 'Rock', 153: 'Blues', 165: 'R&B', 169: 'Soul', 173: 'Films/Jeux', 197: 'Latino', 457: 'Livres audio', 464: 'Metal', 466: 'Folk', 98: 'Classique', 75: 'Musique brésilienne', 84: 'Variété', 2: 'Africaine', 16: 'Asiatique', 81: 'Indienne' };
+function renderReports() {
+  const reps = data.reports;
+  const byLabel = {};
+  for (const r of reps) {
+    const k = (r.label || '(sans label)').trim();
+    const g = byLabel[k] ||= { n: 0, artists: new Set(), hits: 0 };
+    g.n++; g.artists.add(r.artist_name); g.hits = Math.max(g.hits, r.catalog_hits || 0);
+  }
+  const labels = Object.entries(byLabel).sort((a, b) => b[1].n - a[1].n).slice(0, 25);
+  $('byLabel').innerHTML = `<h3 style="font:700 15px var(--serif);margin-bottom:8px">Par label</h3>` + (labels.length
+    ? `<table><thead><tr><th>Label</th><th class="num">Signalements</th><th class="num">Artistes</th></tr></thead><tbody>${labels.map(([l, g]) => `<tr><td>${esc(l)}</td><td class="num">${g.n}</td><td class="num">${g.artists.size}</td></tr>`).join('')}</tbody></table>`
+    : '<p class="empty">Aucun signalement pour l\'instant.</p>');
+  $('blocks').innerHTML = `<h3 style="font:700 15px var(--serif);margin-bottom:8px">Liste d'exclusion actuelle</h3>` + (data.blocks.length
+    ? `<table><thead><tr><th>Type</th><th>Valeur</th><th>Pourquoi</th></tr></thead><tbody>${data.blocks.map(b => `<tr><td>${b.kind === 'label' ? 'Label' : 'Artiste'}</td><td>${esc(b.value)}</td><td>${esc(b.note)}</td></tr>`).join('')}</tbody></table>`
+    : '<p class="empty">Vide.</p>');
+  $('reports').innerHTML = `<h3 style="font:700 15px var(--serif);margin-bottom:8px">Derniers signalements</h3>` + (reps.length
+    ? `<table><thead><tr><th>Date</th><th>Titre</th><th>Album · label</th><th>Genre</th><th class="num" title="Albums de l'artiste qui ressemblent à des ambiances ou des textes lus">Albums suspects</th></tr></thead><tbody>${reps.slice(0, 100).map(r => {
+        const link = r.source === 'apple' ? `https://music.apple.com/fr/song/${r.track_id}` : `https://www.deezer.com/track/${r.track_id}`;
+        return `<tr><td>${new Date(r.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</td><td><a href="${link}" target="_blank" rel="noopener">${esc(r.artist_name)} – ${esc(r.title)}</a></td><td>${esc(r.album_title)}${r.label ? ' · ' + esc(r.label) : ''}</td><td>${esc(GENRES[r.genre_id] ?? r.genre_id ?? '')}</td><td class="num">${r.catalog_hits ?? ''}</td></tr>`;
+      }).join('')}</tbody></table>`
+    : '<p class="empty">Aucun signalement pour l\'instant.</p>');
+}
+
+addEventListener('resize', () => { if (data) renderVisits(series(days)); });
+start();
+</script>
+</body>
+</html>

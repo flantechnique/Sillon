@@ -239,19 +239,38 @@ header > * { pointer-events: auto; }
   .pill.icon { width: 34px; height: 34px; padding: 0; }
 }
 
+/* --- Partage : lien ou image pour une story --- */
+#share .box { text-align: center; }
+#share h2 { padding: 0 24px; font-size: 20px; }
+#sharePreview { display: block; height: min(42vh, 360px); aspect-ratio: 9 / 16; margin: 16px auto 0; border-radius: 10px; border: 2px solid var(--ink); box-shadow: var(--sticker); background: var(--paper-2); object-fit: cover; }
+#share .actions button:disabled { opacity: .45; }
+
+/* --- Titre du jour --- */
+#daily { font-weight: 700; font-size: 14px; padding: 4px 2px; border-bottom: 2px solid currentColor; color: var(--ink-soft); }
+#daily[hidden] { display: none; }
+
+/* --- Clavier et lecteurs d'écran --- */
+:focus-visible { outline: 3px solid var(--tomato); outline-offset: 3px; }
+.card .cover:focus-visible { outline-offset: 6px; }
+.keys { margin-top: 12px; font-size: 12px; color: var(--ink-soft); }
+.keys kbd { font: 700 11px/1 var(--sans); padding: 2px 6px; border: 1.5px solid var(--ink-soft); border-radius: 5px; }
+@media (hover: none) { .keys { display: none; } }
+
 @media (prefers-reduced-motion: reduce) {
   .vinyl { animation: none; }
-  .disc, .arm, #start { transition: none; }
+  .disc, .arm, #start, #toast, .side button, #go { transition: none; }
+  #feed { scroll-behavior: auto; }
 }
 </style>
 </head>
 <body>
 
 <div id="start">
-  <div class="deck"><div class="platter"><div class="vinyl"><div class="sheen"></div><div class="label"><span>Sillon</span></div></div></div><div class="arm"><svg viewBox="0 0 100 100" aria-hidden="true"><line x1="84" y1="12" x2="47" y2="80" stroke="#241b14" stroke-width="7.5" stroke-linecap="round"/><line x1="84" y1="12" x2="47" y2="80" stroke="#efe2c8" stroke-width="4" stroke-linecap="round"/><path d="M41 76 l12 6 -5 11 -12 -6z" fill="#efe2c8" stroke="#241b14" stroke-width="2.2" stroke-linejoin="round"/><circle cx="84" cy="12" r="10" fill="#efe2c8" stroke="#241b14" stroke-width="2.4"/><circle cx="84" cy="12" r="3.2" fill="#241b14"/></svg></div></div>
+  <div class="deck" aria-hidden="true"><div class="platter"><div class="vinyl"><div class="sheen"></div><div class="label"><span>Sillon</span></div></div></div><div class="arm"><svg viewBox="0 0 100 100" aria-hidden="true"><line x1="84" y1="12" x2="47" y2="80" stroke="#241b14" stroke-width="7.5" stroke-linecap="round"/><line x1="84" y1="12" x2="47" y2="80" stroke="#efe2c8" stroke-width="4" stroke-linecap="round"/><path d="M41 76 l12 6 -5 11 -12 -6z" fill="#efe2c8" stroke="#241b14" stroke-width="2.2" stroke-linejoin="round"/><circle cx="84" cy="12" r="10" fill="#efe2c8" stroke="#241b14" stroke-width="2.4"/><circle cx="84" cy="12" r="3.2" fill="#241b14"/></svg></div></div>
   <h1>Sillon</h1>
   <p data-t="tagline">Un titre au hasard, d'un artiste au hasard.<br>Rien que la musique.</p>
   <button id="go" data-t="go">Trouver le diamant</button>
+  <button id="daily" data-t="daily" hidden>Titre du jour</button>
 </div>
 
 <header>
@@ -284,8 +303,20 @@ header > * { pointer-events: auto; }
     <button class="x" data-close aria-label="Fermer" data-t-aria="close">×</button>
     <h2>Sillon</h2>
     <div class="aboutText" data-t="aboutBody"></div>
+    <p class="keys" data-t="keys"></p>
     <label class="optout"><input type="checkbox" id="statsToggle"> <span data-t="statsLabel"></span></label>
     <p class="hint contact"><span data-t="contact"></span> <a href="mailto:flantechnique@proton.me">flantechnique@proton.me</a> · <a href="https://github.com/flantechnique/Sillon" target="_blank" rel="noopener" data-t="sourceCode"></a></p>
+  </div>
+</div>
+<div id="share" class="sheet" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+  <div class="box">
+    <button class="x" data-close aria-label="Fermer" data-t-aria="close">×</button>
+    <h2 id="shareTitle"></h2>
+    <img id="sharePreview" alt="">
+    <div class="actions">
+      <button id="shareStory" class="primary" data-t="shareStory">Image pour une story</button>
+      <button id="shareLink" data-t="shareLink">Envoyer le lien</button>
+    </div>
   </div>
 </div>
 <div id="sync">
@@ -329,6 +360,10 @@ const STR = {
       <p><b>Vos données.</b> Pas de compte, pas de cookie, pas de publicité. Vos titres gardés restent sur votre téléphone, sauf si vous activez la synchronisation (code secret, rien de personnel). Les signalements « pas de la musique » envoient seulement les infos du titre.</p>
       <p><b>Mesure d'audience.</b> Sillon compte, sans aucun identifiant : le nombre de visites par jour, de titres écoutés, gardés et partagés, et la date de votre première visite pour savoir si les gens reviennent. Rien ne permet de vous reconnaître. Vous pouvez le désactiver ci-dessous.</p>`,
     blind: "Écoute à l'aveugle", blindOn: "Écoute à l'aveugle", blindOff: 'Écoute normale', reveal: 'Révéler',
+    shareStory: 'Image pour une story', shareLink: 'Envoyer le lien', foundOn: 'Découvert sur Sillon', imageSaved: 'Image enregistrée',
+    daily: 'Titre du jour', dailyIntro: 'Le titre du jour',
+    playPause: 'Lecture ou pause', cardLabel: (title, artist) => `${title}, de ${artist}`, hidden: 'Titre caché',
+    keys: 'Clavier : <kbd>↑</kbd> <kbd>↓</kbd> changer de titre, <kbd>Espace</kbd> pause, <kbd>G</kbd> garder, <kbd>S</kbd> partager, <kbd>B</kbd> aveugle, <kbd>R</kbd> révéler, <kbd>Échap</kbd> fermer.',
   },
   en: {
     tagline: 'A random track, by a random artist.<br>Nothing but the music.',
@@ -353,6 +388,10 @@ const STR = {
       <p><b>Your data.</b> No account, no cookies, no ads. Your saved tracks stay on your phone unless you turn on sync (a secret code, nothing personal). “Not music” reports only send the track's details.</p>
       <p><b>Audience measurement.</b> Without any identifier, Sillon counts visits per day, tracks played, saved and shared, and the date of your first visit to see whether people come back. Nothing can identify you. You can turn it off below.</p>`,
     blind: 'Blind listening', blindOn: 'Blind listening', blindOff: 'Normal listening', reveal: 'Reveal',
+    shareStory: 'Image for a story', shareLink: 'Send the link', foundOn: 'Found on Sillon', imageSaved: 'Image saved',
+    daily: "Today's track", dailyIntro: "Today's track",
+    playPause: 'Play or pause', cardLabel: (title, artist) => `${title}, by ${artist}`, hidden: 'Hidden track',
+    keys: 'Keyboard: <kbd>↑</kbd> <kbd>↓</kbd> change track, <kbd>Space</kbd> pause, <kbd>G</kbd> save, <kbd>S</kbd> share, <kbd>B</kbd> blind, <kbd>R</kbd> reveal, <kbd>Esc</kbd> close.',
   },
 }[LANG];
 const t = (k, ...a) => typeof STR[k] === 'function' ? STR[k](...a) : STR[k];
@@ -537,7 +576,7 @@ function fill(c, { track, artist, album }) {
         <svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="track" cx="50" cy="50" r="48.5"/><circle class="done" cx="50" cy="50" r="48.5"/></svg>
         <div class="arm">${ARM_SVG}</div>
       </div>
-      <div class="cover" style="background-image:url('${esc(cover)}')"><div class="playIcon"><i><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l15 8-15 8z"/></svg></i></div></div>
+      <div class="cover" role="button" tabindex="0" aria-label="${t('playPause')}" style="background-image:url('${esc(cover)}')"><div class="playIcon" aria-hidden="true"><i><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l15 8-15 8z"/></svg></i></div></div>
     </div>
     <div class="meta"><div class="txt">
       <button class="reveal"><b>?</b><span>${t('reveal')}</span></button>
@@ -560,6 +599,7 @@ function fill(c, { track, artist, album }) {
       : `<a class="src" href="${esc(track.link || artist.link)}" target="_blank" rel="noopener">${t('preview')} · ${SOURCE_NAMES[track.source || 'deezer']}</a>`}`;
   c.el.classList.toggle('current', cards.indexOf(c) === current);
   c.el.classList.toggle('blind', blindMode && !c.revealed);
+  labelCard(c);
   c.el.querySelector('.reveal').onclick = e => { e.stopPropagation(); reveal(c); };
   const keepBtn = c.el.querySelector('.keep');
   keepBtn.classList.toggle('on', kept.some(k => k.trackId === track.id));
@@ -567,9 +607,17 @@ function fill(c, { track, artist, album }) {
   c.el.querySelector('.next').onclick = e => { e.stopPropagation(); go(cards.indexOf(c) + 1); };
   c.el.querySelector('.report').onclick = e => { e.stopPropagation(); report(c); };
   c.el.querySelector('.share').onclick = e => { e.stopPropagation(); shareTrack(c); };
-  c.el.querySelector('.cover').onclick = () => togglePlay();
+  const coverEl = c.el.querySelector('.cover');
+  coverEl.onclick = () => togglePlay();
+  coverEl.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); togglePlay(); } };
   if (cards.indexOf(c) === current) play(current);
   else if (cards.indexOf(c) === current + 1) preloadNext();
+}
+
+// Nom de la carte pour les lecteurs d'écran (rien de révélé en écoute à l'aveugle).
+function labelCard(c) {
+  if (!c.data) return;
+  c.el.setAttribute('aria-label', c.el.classList.contains('blind') ? t('hidden') : t('cardLabel', c.data.track.title, c.data.artist.name));
 }
 
 // --- Signalement « pas de la musique » ---
@@ -605,7 +653,7 @@ async function report(c) {
 let toastT;
 function toast(text) {
   let el = document.getElementById('toast');
-  if (!el) { el = document.createElement('div'); el.id = 'toast'; document.body.appendChild(el); }
+  if (!el) { el = document.createElement('div'); el.id = 'toast'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
   el.textContent = text;
   el.classList.add('show');
   clearTimeout(toastT);
@@ -679,7 +727,7 @@ function setCurrent(i) {
 function go(i) {
   if (i < 0 || i >= cards.length) return;
   setCurrent(i);
-  cards[i].el.scrollIntoView({ behavior: document.hidden ? 'auto' : 'smooth' });
+  cards[i].el.scrollIntoView({ behavior: document.hidden || matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
 }
 
 // Détecte la carte visible
@@ -724,6 +772,7 @@ function reveal(c) {
   c.revealed = true;
   const wasBlind = c.el.classList.contains('blind');
   c.el.classList.remove('blind');
+  labelCard(c);
   if (wasBlind && cards.indexOf(c) === current) setSession(c);
 }
 function setBlind(on) {
@@ -732,7 +781,7 @@ function setBlind(on) {
   const btn = document.getElementById('blindBtn');
   btn.classList.toggle('on', on);
   btn.setAttribute('aria-pressed', on);
-  cards.forEach(c => c.el.classList.toggle('blind', on && !!c.data && !c.revealed));
+  cards.forEach(c => { c.el.classList.toggle('blind', on && !!c.data && !c.revealed); labelCard(c); });
   if (cards[current]?.data) setSession(cards[current]);
 }
 document.getElementById('blindBtn').onclick = () => { setBlind(!blindMode); toast(t(blindMode ? 'blindOn' : 'blindOff')); };
@@ -1029,11 +1078,25 @@ function maybeRecap() {
 
 // --- Clavier ---
 addEventListener('keydown', e => {
-  if (e.target.closest('input, textarea')) return;
-  if (e.key === 'ArrowDown' || e.key === 'j') { e.preventDefault(); go(current + 1); }
-  else if (e.key === 'ArrowUp' || e.key === 'k') { e.preventDefault(); go(current - 1); }
-  else if (e.key === ' ') { e.preventDefault(); togglePlay(); }
-  else if (e.key === 'l' || e.key === 'g') { const b = cards[current]?.el.querySelector('.keep'); b && b.click(); }
+  if (e.target.closest('input, textarea') || e.ctrlKey || e.metaKey || e.altKey) return;
+  const open = document.querySelector('.sheet.open, #sync.open');
+  if (e.key === 'Escape') {
+    if (open) open.classList.remove('open');
+    else if (panelMode) openPanel(panelMode);
+    return;
+  }
+  if (open) return;
+  const start = document.getElementById('start');
+  if (start) { if (e.key === 'Enter' && !e.target.closest('button')) document.getElementById('go').click(); return; }
+  const c = cards[current];
+  const key = e.key.toLowerCase();
+  if (e.key === 'ArrowDown' || key === 'j') { e.preventDefault(); go(current + 1); }
+  else if (e.key === 'ArrowUp' || key === 'k') { e.preventDefault(); go(current - 1); }
+  else if (e.key === ' ' && !e.target.closest('button, a, [role=button]')) { e.preventDefault(); togglePlay(); }
+  else if (key === 'l' || key === 'g') c?.el.querySelector('.keep')?.click();
+  else if (key === 's') c?.el.querySelector('.share')?.click();
+  else if (key === 'b') document.getElementById('blindBtn').click();
+  else if (key === 'r' && c) reveal(c);
 });
 
 // --- Démarrage (le navigateur exige un geste pour lancer le son) ---
@@ -1050,20 +1113,185 @@ document.getElementById('go').onclick = () => {
 // ?t=123 pour Deezer, ?t=ap:123 pour Apple Music.
 const shareUrl = track => `${location.origin}${location.pathname}?t=${encodeURIComponent(track.id)}`;
 
-async function shareTrack(c) {
+// Le partage ouvre une fiche : l'image pour une story (préparée dès l'ouverture, car le partage
+// de fichier doit partir directement du geste) ou le lien.
+const shareEl = document.getElementById('share');
+let shareCard = null, storyFile = null;
+
+function shareTrack(c) {
   if (!c.data) return;
+  reveal(c); // on ne partage pas un titre qu'on n'a pas vu
+  const { track, artist } = c.data;
+  shareCard = c;
+  storyFile = null;
+  document.getElementById('shareTitle').textContent = `${artist.name} – ${track.title}`;
+  const img = document.getElementById('sharePreview');
+  img.removeAttribute('src');
+  const btn = document.getElementById('shareStory');
+  btn.disabled = true;
+  shareEl.classList.add('open');
+  storyImage(c).then(blob => {
+    if (shareCard !== c || !blob) return;
+    const slug = `${artist.name}-${track.title}`.normalize('NFD').replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '').slice(0, 60).toLowerCase();
+    storyFile = new File([blob], `sillon-${slug || 'titre'}.jpg`, { type: 'image/jpeg' });
+    if (img.src) URL.revokeObjectURL(img.src);
+    img.src = URL.createObjectURL(blob);
+    btn.disabled = false;
+  });
+}
+
+document.getElementById('shareLink').onclick = async () => {
+  const c = shareCard;
+  if (!c?.data) return;
   const { track, artist } = c.data;
   bump('shares');
   const url = shareUrl(track);
   const text = `${artist.name} – ${track.title}`;
+  shareEl.classList.remove('open');
   if (navigator.share) {
     try { await navigator.share({ title: 'Sillon', text, url }); return; }
     catch (e) { if (e.name === 'AbortError') return; }
   }
   toast(await copyText(`${text}\n${url}`) ? t('linkCopied') : t('copyFailed'));
+};
+
+document.getElementById('shareStory').onclick = async () => {
+  if (!storyFile) return;
+  bump('story_shares');
+  if (navigator.canShare?.({ files: [storyFile] })) {
+    try { await navigator.share({ files: [storyFile] }); shareEl.classList.remove('open'); return; }
+    catch (e) { if (e.name === 'AbortError') return; }
+  }
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(storyFile), download: storyFile.name });
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  toast(t('imageSaved'));
+};
+
+// --- Image 1080x1920 aux couleurs de la carte : pochette et disque, titre, artiste, adresse ---
+const loadImg = src => new Promise((ok, ko) => {
+  const i = new Image();
+  i.crossOrigin = 'anonymous'; // Deezer et Apple autorisent : l'image reste exportable
+  i.onload = () => ok(i); i.onerror = ko;
+  i.src = src;
+});
+
+// Coupe le titre en 3 lignes au plus, en réduisant la taille si besoin.
+function fitLines(x, text, maxW, size, minSize, font) {
+  for (; size >= minSize; size -= 4) {
+    x.font = font(size);
+    const lines = [];
+    let line = '';
+    for (const w of String(text).split(/\s+/)) {
+      const test = line ? line + ' ' + w : w;
+      if (!line || x.measureText(test).width <= maxW) line = test; else { lines.push(line); line = w; }
+    }
+    lines.push(line);
+    if (lines.length <= 3 && lines.every(l => x.measureText(l).width <= maxW)) return { lines, size };
+  }
+  // Mots trop longs : on coupe lettre par lettre
+  x.font = font(minSize);
+  const lines = [];
+  let line = '';
+  for (const ch of String(text)) {
+    if (line && x.measureText(line + ch).width > maxW) { lines.push(line); line = ch.trim(); } else line += ch;
+  }
+  lines.push(line);
+  if (lines.length > 3) { lines.length = 3; lines[2] = lines[2].slice(0, -1) + '…'; }
+  return { lines, size: minSize };
 }
 
+async function storyImage(c) {
+  try {
+    const { track, artist } = c.data;
+    const W = 1080, H = 1920;
+    const cv = Object.assign(document.createElement('canvas'), { width: W, height: H });
+    const x = cv.getContext('2d');
+    const st = getComputedStyle(c.el);
+    const [bg, fg, ac] = ['--bg', '--fg', '--ac'].map(v => st.getPropertyValue(v).trim());
+    const coverUrl = track.album?.cover_xl || track.album?.cover_big || '';
+    const [cover, grain] = await Promise.all([
+      coverUrl ? loadImg(coverUrl).catch(() => null) : null,
+      loadImg('grain.png').catch(() => null),
+      document.fonts.load('650 90px Fraunces'), document.fonts.load('italic 750 60px Fraunces'), document.fonts.load('700 30px "DM Sans"'),
+    ].map(p => Promise.resolve(p).catch(() => null)));
+
+    x.fillStyle = bg; x.fillRect(0, 0, W, H);
+    let g = x.createRadialGradient(W / 2, 640, 0, W / 2, 640, 1100);
+    g.addColorStop(0, 'rgba(255,255,255,.22)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    g = x.createLinearGradient(0, H * .55, 0, H);
+    g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.16)');
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+
+    x.textAlign = 'center'; x.textBaseline = 'alphabetic'; x.fillStyle = fg;
+    x.globalAlpha = .8; x.font = '700 30px "DM Sans", sans-serif';
+    if ('letterSpacing' in x) x.letterSpacing = '6px';
+    x.fillText(t('foundOn').toUpperCase(), W / 2, 330); // hors des zones masquées par Instagram (haut et bas)
+    if ('letterSpacing' in x) x.letterSpacing = '0px';
+    x.globalAlpha = 1;
+
+    // Pochette et disque qui en sort, comme dans l'appli
+    const S = 600, X0 = (W - S * 1.42) / 2, Y0 = 420;
+    const dx = X0 + S * .5 + S * .46 + S * .05, dy = Y0 + S / 2, R = S * .47;
+    x.save(); x.shadowColor = 'rgba(0,0,0,.35)'; x.shadowBlur = 40; x.shadowOffsetY = 16;
+    x.fillStyle = '#1c1612'; x.beginPath(); x.arc(dx, dy, R, 0, Math.PI * 2); x.fill(); x.restore();
+    x.strokeStyle = '#2b231d'; x.lineWidth = 2;
+    for (let r = R * .38; r < R - 4; r += 7) { x.beginPath(); x.arc(dx, dy, r, 0, Math.PI * 2); x.stroke(); }
+    x.save(); x.beginPath(); x.arc(dx, dy, R * .36, 0, Math.PI * 2); x.clip();
+    if (cover) x.drawImage(cover, dx - R * .36, dy - R * .36, R * .72, R * .72); else { x.fillStyle = ac; x.fill(); }
+    x.restore();
+    x.fillStyle = '#f4e9d4'; x.beginPath(); x.arc(dx, dy, R * .03, 0, Math.PI * 2); x.fill();
+
+    x.fillStyle = 'rgba(0,0,0,.2)'; x.fillRect(X0 + 12, Y0 + 18, S, S);
+    x.save(); x.shadowColor = 'rgba(0,0,0,.3)'; x.shadowBlur = 50; x.shadowOffsetY = 26;
+    x.fillStyle = ac; x.fillRect(X0, Y0, S, S); x.restore();
+    if (cover) x.drawImage(cover, X0, Y0, S, S);
+    else {
+      x.fillStyle = '#f4e9d4'; x.font = 'italic 750 300px Fraunces, serif'; x.textBaseline = 'middle';
+      x.fillText('♪', X0 + S / 2, Y0 + S / 2); x.textBaseline = 'alphabetic';
+    }
+    x.strokeStyle = 'rgba(0,0,0,.12)'; x.lineWidth = 2; x.strokeRect(X0 + 1, Y0 + 1, S - 2, S - 2);
+
+    // Titre et artiste
+    const serif = s => `650 ${s}px Fraunces, Georgia, serif`;
+    const { lines, size } = fitLines(x, track.title, W - 160, 96, 56, serif);
+    x.fillStyle = fg; x.font = serif(size);
+    let y = Y0 + S + 150;
+    for (const l of lines) { x.fillText(l, W / 2, y); y += size * 1.12; }
+    x.font = '700 34px "DM Sans", sans-serif'; x.globalAlpha = .85;
+    if ('letterSpacing' in x) x.letterSpacing = '5px';
+    const { lines: al } = fitLines(x, artist.name.toUpperCase(), W - 160, 34, 26, s => `700 ${s}px "DM Sans", sans-serif`);
+    x.fillText(al[0] + (al.length > 1 ? '…' : ''), W / 2, y + 30);
+    if ('letterSpacing' in x) x.letterSpacing = '0px';
+    x.globalAlpha = 1;
+
+    // Étiquette sillon.cloud
+    x.font = '700 40px "DM Sans", sans-serif';
+    const label = location.hostname.endsWith('sillon.cloud') ? 'sillon.cloud' : location.host;
+    const pw = x.measureText(label).width + 90, ph = 96, px = (W - pw) / 2, py = H - 400;
+    const pill = (ox, oy) => { x.beginPath(); x.roundRect(px + ox, py + oy, pw, ph, ph / 2); };
+    x.fillStyle = '#241b14'; pill(7, 7); x.fill();
+    x.fillStyle = '#e9b44c'; pill(0, 0); x.fill();
+    x.lineWidth = 4; x.strokeStyle = '#241b14'; x.stroke();
+    x.fillStyle = '#241b14'; x.textBaseline = 'middle'; x.fillText(label, W / 2, py + ph / 2 + 2);
+
+    if (grain) {
+      x.globalCompositeOperation = 'multiply'; x.globalAlpha = .55;
+      x.fillStyle = x.createPattern(grain, 'repeat'); x.fillRect(0, 0, W, H);
+    }
+    return await new Promise(ok => cv.toBlob(ok, 'image/jpeg', .92));
+  } catch { return null; }
+}
+
+// Titre du jour : tiré au hasard dans la réserve chaque matin (tools/pick-daily.js), le même pour tout le monde.
+const dailyEntry = fetch('pool/daily.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null);
+
 async function loadShared(id) {
+  if (id === 'daily') {
+    const d = await dailyEntry;
+    return d?.i ? loadShared(String(d.i)) : null;
+  }
   if (/^ap:\d+$/.test(id)) {
     const res = await fetch(`https://itunes.apple.com/lookup?country=${APPLE_COUNTRY}&id=${id.slice(3)}`).then(r => r.json());
     const t = (res.results || []).find(x => x.kind === 'song' && x.previewUrl);
@@ -1077,7 +1305,7 @@ async function loadShared(id) {
 }
 
 // L'accueil annonce le titre partagé : sa pochette sur l'étiquette du disque.
-function announceShared({ track, artist }) {
+function announceShared({ track, artist }, intro = t('sharedIntro')) {
   const start = document.getElementById('start');
   if (!start) return;
   const cover = track.album?.cover_xl || track.album?.cover_medium || '';
@@ -1085,20 +1313,41 @@ function announceShared({ track, artist }) {
   label.style.backgroundImage = `url('${cover}')`;
   label.style.backgroundSize = 'cover';
   label.querySelector('span').remove();
-  start.querySelector('p').innerHTML = `${t('sharedIntro')}<br><em>${esc(track.title)}</em> · ${esc(artist.name)}`;
+  start.querySelector('p').innerHTML = `${intro}<br><em>${esc(track.title)}</em> · ${esc(artist.name)}`;
 }
 
-const sharedId = new URLSearchParams(location.search).get('t');
-if (sharedId) {
-  queueMicrotask(() => bump('shared_opens')); // une fois le module de mesure (plus bas) initialisé
-  history.replaceState(null, '', location.pathname);
-  const c = placeholder();
+// Carte dont le titre est connu d'avance (lien partagé, titre du jour) ; si elle échoue, le hasard prend le relais.
+function fillWith(c, id, onLoad) {
   pending++;
-  loadShared(sharedId)
-    .then(d => { if (!d) throw new Error('introuvable'); seenArtists.add(d.artist.id); fill(c, d); announceShared(d); })
+  loadShared(id)
+    .then(d => { if (!d) throw new Error('introuvable'); seenArtists.add(d.artist.id); fill(c, d); onLoad?.(d); })
     .catch(() => findTrack().then(d => fill(c, d)).catch(() => { c.failed = true; }))
     .finally(() => { pending--; topUp(); });
 }
+
+// ?t=123 : titre partagé. ?jour (ou ?today) : titre du jour, pour les liens publiés sur les réseaux.
+const params = new URLSearchParams(location.search);
+const sharedId = params.get('t') || (params.has('jour') || params.has('today') ? 'daily' : null);
+if (sharedId) {
+  queueMicrotask(() => bump(sharedId === 'daily' ? 'daily_opens' : 'shared_opens')); // une fois le module de mesure (plus bas) initialisé
+  history.replaceState(null, '', location.pathname);
+  fillWith(placeholder(), sharedId, d => announceShared(d, sharedId === 'daily' ? t('dailyIntro') : undefined));
+} else {
+  dailyEntry.then(d => { if (d?.i) document.getElementById('daily').hidden = false; });
+}
+
+// Bouton « Titre du jour » de l'accueil : la carte passe en tête du fil, avant les titres déjà tirés.
+document.getElementById('daily').onclick = () => {
+  bump('daily_opens');
+  const c = placeholder();
+  feed.prepend(c.el);
+  cards.pop(); cards.unshift(c);
+  if (current >= 0) current++;
+  feed.scrollTop = 0;
+  setCurrent(0);
+  fillWith(c, 'daily');
+  document.getElementById('go').click();
+};
 
 // --- Mesure d'audience anonyme : compteurs agrégés par jour, aucun identifiant envoyé ---
 // Rétention : chaque téléphone envoie au plus un « passage » par jour avec la date de sa première visite.

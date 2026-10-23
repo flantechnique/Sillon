@@ -52,6 +52,18 @@ Tout est portable : l'appli ne dépend que de chemins relatifs.
 - **Si Deezer coupe l'accès** : Apple Music prend le relais tout seul. Pour en faire la source principale, inverser l'ordre dans `findTrack()`.
 - **Si Supabase disparaît** : recréer les tables avec les migrations `sillon_*` (projet top-youtube), changer `SB_URL` et `SB_KEY` dans `index.html` et `tools/build-pool.js`.
 
+## Titre du jour
+
+Chaque matin, après le tirage de la réserve, `tools/pick-daily.js` choisit au hasard un titre de la réserve et l'écrit dans `pool/daily.json`. Le même pour tout le monde jusqu'au lendemain, sans aucun critère de popularité. Accessible depuis l'accueil, ou par le lien `https://sillon.cloud/?jour` (`?today` en anglais).
+
+## Surveillance
+
+Toutes les 6 heures, `.github/workflows/health.yml` lance `tools/health.js` : site en ligne, réserve tirée depuis moins de 36 h, titre du jour renouvelé, extraits Deezer lisibles, Apple Music et Supabase qui répondent. Au premier problème, une *issue* « alerte » est ouverte (notification par e-mail) ; les échecs suivants s'y ajoutent en commentaire, et elle se ferme toute seule quand tout repart.
+
+## Tableau de bord
+
+`admin.html` : visites, écoutes, partages, provenance des nouveaux visiteurs, retour à 7 jours, signalements regroupés par label et liste d'exclusion. Lecture seule. Il s'ouvre avec un lien secret (`admin.html#k=…`, conservé hors du dépôt) ; la base ne garde que l'empreinte SHA-256 de la clé (table `sillon_admin`, fonction `sillon_admin_data`). Pour changer de clé : remplacer l'empreinte dans `sillon_admin`.
+
 ## Langues
 
 Interface en français si le téléphone est en français, en anglais sinon (dictionnaire `STR` en tête du script de `index.html`). `?lang=fr` ou `?lang=en` dans l'adresse force une langue.

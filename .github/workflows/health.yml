@@ -1,0 +1,42 @@
+name: Surveillance
+
+on:
+  schedule:
+    - cron: '41 */6 * * *' # toutes les 6 heures
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Vérifications
+        id: health
+        run: |
+          set +e
+          node tools/health.js
+          code=$?
+          if [ $code -eq 2 ]; then echo "down=true" >> "$GITHUB_OUTPUT"; elif [ $code -ne 0 ]; then exit $code; fi
+      # Une seule alerte ouverte à la fois : on la crée au premier échec, on la ferme quand tout repart.
+      - name: Alerte
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          open=$(gh issue list --label alerte --state open --json number --jq '.[0].number')
+          if [ "${{ steps.health.outputs.down }}" = "true" ]; then
+            if [ -z "$open" ]; then
+              gh label create alerte --color e4572e --description "Surveillance automatique" 2>/dev/null || true
+              gh issue create --label alerte --title "Sillon : un service ne répond plus" --body-file tools/HEALTH.md
+            else
+              gh issue comment "$open" --body-file tools/HEALTH.md
+            fi
+          elif [ -n "$open" ]; then
+            gh issue close "$open" --comment "Tout fonctionne de nouveau ($(date -u '+%F %H:%M') UTC)."
+          fi
