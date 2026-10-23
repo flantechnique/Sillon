@@ -176,6 +176,7 @@ header > * { pointer-events: auto; }
 #kept .t small { display: block; font-size: 12px; margin-top: 3px; }
 #kept .row a { color: var(--ink-soft); margin-right: 10px; }
 #kept .x { color: var(--ink-soft); font-size: 22px; padding: 8px; }
+#kept .row .thx { color: var(--tomato); font-weight: 700; font-size: 12px; text-decoration: underline; text-underline-offset: 2px; }
 #kept .h { color: var(--ink-soft); padding: 8px; display: grid; }
 #kept .h svg { width: 22px; height: 22px; }
 #kept .h.on { color: var(--tomato); }
@@ -245,6 +246,29 @@ header > * { pointer-events: auto; }
 #sharePreview { display: block; height: min(42vh, 360px); aspect-ratio: 9 / 16; margin: 16px auto 0; border-radius: 10px; border: 2px solid var(--ink); box-shadow: var(--sticker); background: var(--paper-2); object-fit: cover; }
 #share .actions button:disabled { opacity: .45; }
 
+/* --- Devinette du jour --- */
+.guess { display: none; margin-bottom: 10px; }
+.card.blind.daily .guess { display: block; }
+.guess p { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin: 8px 0 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { font-size: 13px; font-weight: 700; padding: 6px 11px; border-radius: 99px; border: 2px solid currentColor; color: var(--fg); }
+.chips button.on { background: var(--fg); color: var(--bg); }
+.gres { display: none; margin-top: 12px; font-size: 13px; line-height: 1.5; }
+.card.daily.played .gres { display: block; }
+.gres b { font-weight: 700; }
+.gres button { margin-top: 8px; font-size: 13px; font-weight: 700; padding: 7px 14px; border-radius: 99px; background: var(--paper); color: var(--ink); border: 2px solid var(--ink); box-shadow: var(--sticker); }
+#shareNote { display: block; width: 100%; margin-top: 14px; padding: 10px 14px; border: 2px solid var(--ink); border-radius: 99px; background: #fffaf0; color: var(--ink); font: inherit; font-size: 14px; }
+#start .note { font-family: var(--serif); font-style: italic; color: var(--ink); }
+#platineCode { margin: 16px 0 4px; text-align: center; font: 700 26px/1.2 ui-monospace, 'Cascadia Mono', Consolas, monospace; letter-spacing: .12em; color: var(--tomato); }
+.carnetStats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.carnetStats div { border: 2px solid var(--ink); border-radius: 12px; padding: 8px 12px; background: #fffaf0; }
+.carnetStats b { display: block; font: 700 24px/1.1 var(--serif); }
+.carnetStats span { font-size: 12px; color: var(--ink-soft); }
+#carnetBody h3 { font: 700 13px var(--sans); letter-spacing: .08em; text-transform: uppercase; margin: 16px 0 8px; }
+#carnetBody .chips button { cursor: default; color: var(--ink); border-color: var(--ink); font-size: 12px; padding: 4px 9px; }
+#carnetBody .chips button:not(.on) { border-style: dashed; opacity: .55; }
+#carnetBody .chips button.on { background: var(--ink); color: var(--paper); }
+
 /* --- Titre du jour --- */
 #daily { font-weight: 700; font-size: 14px; padding: 4px 2px; border-bottom: 2px solid currentColor; color: var(--ink-soft); }
 #daily[hidden] { display: none; }
@@ -283,7 +307,7 @@ header > * { pointer-events: auto; }
 </header>
 
 <div id="feed"></div>
-<div id="kept"><ul></ul><div class="panelLinks"><button id="exportBtn" class="syncLink" data-t="export">Exporter</button><button id="syncBtn" class="syncLink" data-t="sync">Synchroniser mes appareils</button></div></div>
+<div id="kept"><ul></ul><div class="panelLinks"><button id="carnetBtn" class="syncLink" data-t="carnet">Carnet de fouilles</button><button id="bacBtn" class="syncLink" data-t="shareBac">Partager mon bac</button><button id="platineBtn" class="syncLink" data-t="platine">Écouter à plusieurs</button><button id="exportBtn" class="syncLink" data-t="export">Exporter</button><button id="syncBtn" class="syncLink" data-t="sync">Synchroniser mes appareils</button></div></div>
 <div id="export" class="sheet">
   <div class="box">
     <button class="x" data-close aria-label="Fermer" data-t-aria="close">×</button>
@@ -293,6 +317,7 @@ header > * { pointer-events: auto; }
     <div class="actions">
       <button id="exportPlaylist" class="primary" data-t="playlist">Créer une playlist</button>
       <button id="exportCopy" data-t="copyList">Copier la liste</button>
+      <button id="recapImg" data-t="recapImage">Image du mois</button>
     </div>
     <p class="hint" id="exportHint"></p>
     <div class="backup"><button id="backupSave" data-t="backup">Sauvegarder dans un fichier</button><label><span data-t="restore">Restaurer</span><input type="file" id="backupLoad" accept=".json,application/json" hidden></label></div>
@@ -313,10 +338,27 @@ header > * { pointer-events: auto; }
     <button class="x" data-close aria-label="Fermer" data-t-aria="close">×</button>
     <h2 id="shareTitle"></h2>
     <img id="sharePreview" alt="">
+    <input id="shareNote" maxlength="140" autocomplete="off" data-t-ph="notePh">
     <div class="actions">
       <button id="shareStory" class="primary" data-t="shareStory">Image pour une story</button>
       <button id="shareLink" data-t="shareLink">Envoyer le lien</button>
     </div>
+  </div>
+</div>
+<div id="platine" class="sheet" role="dialog" aria-modal="true" aria-labelledby="platineTitle">
+  <div class="box">
+    <button class="x" data-close aria-label="Fermer" data-t-aria="close">×</button>
+    <h2 id="platineTitle" data-t="platine"></h2>
+    <p class="hint" data-t="platineHint"></p>
+    <div id="platineCode"></div>
+    <div class="actions" id="platineActions"></div>
+  </div>
+</div>
+<div id="carnetSheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="carnetTitle">
+  <div class="box">
+    <button class="x" data-close aria-label="Fermer" data-t-aria="close">×</button>
+    <h2 id="carnetTitle" data-t="carnet"></h2>
+    <div id="carnetBody"></div>
   </div>
 </div>
 <div id="sync">
@@ -361,7 +403,22 @@ const STR = {
       <p><b>Mesure d'audience.</b> Sillon compte, sans aucun identifiant : le nombre de visites par jour, de titres écoutés, gardés et partagés, et la date de votre première visite pour savoir si les gens reviennent. Rien ne permet de vous reconnaître. Vous pouvez le désactiver ci-dessous.</p>`,
     blind: "Écoute à l'aveugle", blindOn: "Écoute à l'aveugle", blindOff: 'Écoute normale', reveal: 'Révéler',
     shareStory: 'Image pour une story', shareLink: 'Envoyer le lien', foundOn: 'Découvert sur Sillon', imageSaved: 'Image enregistrée',
-    daily: 'Titre du jour', dailyIntro: 'Le titre du jour',
+    daily: 'Devinette du jour', dailyIntro: n => `Devinette n°${n} : écoutez, devinez, puis révélez`,
+    genreQ: 'Genre ?', decadeQ: 'Décennie ?', decade: d => `années ${d}`,
+    right: 'juste', wrong: 'raté', skipped: 'pas de réponse',
+    streak: n => n > 1 ? `Série : ${n} jours` : 'Série : 1 jour', shareResult: 'Partager mon résultat',
+    resultText: (n, g, d, s) => `Sillon, devinette n°${n}\nGenre ${g}  Décennie ${d}\n${s}`, resultCopied: 'Résultat copié',
+    notePh: 'Un mot avec le lien (facultatif)', noteIntro: 'avec ce mot :',
+    platine: 'Écouter à plusieurs', platineHint: 'Tous ceux qui ouvrent le même lien entendent la même suite de titres, dans le même ordre. Chacun à son rythme, sans compte.',
+    platineStart: 'Lancer une platine', platineInvite: 'Inviter', platineLeave: 'Quitter la platine',
+    platineIntro: code => `Platine ${code} : la même suite de titres pour tout le monde.`, platineText: 'Écoute la même suite de titres que moi sur Sillon',
+    shareBac: 'Partager mon bac', bacText: 'Mon bac sur Sillon', bacIntro: n => `Quelqu'un vous ouvre son bac : ${n} titre${n > 1 ? 's' : ''}, puis le hasard reprend.`,
+    thanks: 'Merci', thanksText: (title, artist) => `Bonjour ${artist}, je suis tombé·e par hasard sur « ${title} » grâce à Sillon (sillon.cloud). Merci pour ce morceau !`,
+    thanksCopied: 'Message copié : à coller sur ses réseaux',
+    carnet: 'Carnet de fouilles', carnetPlays: 'titres écoutés', carnetArtists: 'artistes croisés', carnetGenres: 'genres explorés', carnetDecades: 'décennies traversées',
+    carnetOldest: (y, title, artist) => `Le plus ancien : ${y}, « ${title} » de ${artist}`, carnetEmpty: 'Les pages se remplissent à chaque titre écouté.',
+    recapImage: 'Image du mois', recapTitle: m => `Mon mois ${/^[aeiouy]/i.test(m) ? "d'" : 'de '}${m} sur Sillon`, recapKept: 'titres gardés',
+    recapFacts: (g, y) => [g ? `${g} genre${g > 1 ? 's' : ''}` : '', y ? `le plus ancien date de ${y}` : ''].filter(Boolean).join(' · '),
     playPause: 'Lecture ou pause', cardLabel: (title, artist) => `${title}, de ${artist}`, hidden: 'Titre caché',
     keys: 'Clavier : <kbd>↑</kbd> <kbd>↓</kbd> changer de titre, <kbd>Espace</kbd> pause, <kbd>G</kbd> garder, <kbd>S</kbd> partager, <kbd>B</kbd> aveugle, <kbd>R</kbd> révéler, <kbd>Échap</kbd> fermer.',
   },
@@ -389,7 +446,22 @@ const STR = {
       <p><b>Audience measurement.</b> Without any identifier, Sillon counts visits per day, tracks played, saved and shared, and the date of your first visit to see whether people come back. Nothing can identify you. You can turn it off below.</p>`,
     blind: 'Blind listening', blindOn: 'Blind listening', blindOff: 'Normal listening', reveal: 'Reveal',
     shareStory: 'Image for a story', shareLink: 'Send the link', foundOn: 'Found on Sillon', imageSaved: 'Image saved',
-    daily: "Today's track", dailyIntro: "Today's track",
+    daily: 'Daily guess', dailyIntro: n => `Daily guess #${n}: listen, guess, then reveal`,
+    genreQ: 'Genre?', decadeQ: 'Decade?', decade: d => `${d}s`,
+    right: 'right', wrong: 'wrong', skipped: 'no answer',
+    streak: n => n > 1 ? `Streak: ${n} days` : 'Streak: 1 day', shareResult: 'Share my result',
+    resultText: (n, g, d, s) => `Sillon, daily guess #${n}\nGenre ${g}  Decade ${d}\n${s}`, resultCopied: 'Result copied',
+    notePh: 'Add a note to the link (optional)', noteIntro: 'with this note:',
+    platine: 'Listen together', platineHint: 'Everyone who opens the same link hears the same tracks, in the same order. At their own pace, no account needed.',
+    platineStart: 'Start a turntable', platineInvite: 'Invite', platineLeave: 'Leave the turntable',
+    platineIntro: code => `Turntable ${code}: the same tracks for everyone.`, platineText: 'Listen to the same tracks as me on Sillon',
+    shareBac: 'Share my crate', bacText: 'My crate on Sillon', bacIntro: n => `Someone opened their crate for you: ${n} track${n > 1 ? 's' : ''}, then back to random.`,
+    thanks: 'Thank', thanksText: (title, artist) => `Hi ${artist}, I stumbled upon "${title}" by chance on Sillon (sillon.cloud). Thank you for this song!`,
+    thanksCopied: 'Message copied: paste it on their socials',
+    carnet: 'Digging log', carnetPlays: 'tracks played', carnetArtists: 'artists met', carnetGenres: 'genres explored', carnetDecades: 'decades visited',
+    carnetOldest: (y, title, artist) => `Oldest so far: ${y}, "${title}" by ${artist}`, carnetEmpty: 'The pages fill up with every track you play.',
+    recapImage: 'Image of the month', recapTitle: m => `My ${m} on Sillon`, recapKept: 'tracks saved',
+    recapFacts: (g, y) => [g ? `${g} genre${g > 1 ? 's' : ''}` : '', y ? `the oldest is from ${y}` : ''].filter(Boolean).join(' · '),
     playPause: 'Play or pause', cardLabel: (title, artist) => `${title}, by ${artist}`, hidden: 'Hidden track',
     keys: 'Keyboard: <kbd>↑</kbd> <kbd>↓</kbd> change track, <kbd>Space</kbd> pause, <kbd>G</kbd> save, <kbd>S</kbd> share, <kbd>B</kbd> blind, <kbd>R</kbd> reveal, <kbd>Esc</kbd> close.',
   },
@@ -400,6 +472,12 @@ document.documentElement.lang = LANG;
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = t(el.dataset.t); });
 document.querySelectorAll('[data-t-aria]').forEach(el => el.setAttribute('aria-label', t(el.dataset.tAria)));
 document.querySelectorAll('[data-t-ph]').forEach(el => { el.placeholder = t(el.dataset.tPh); });
+
+// Genres Deezer de la devinette et du carnet (même liste que tools/pick-daily.js, sans livres audio ni jeunesse)
+const GENRES = {
+  fr: { 132: 'Pop', 116: 'Rap', 152: 'Rock', 113: 'Dance', 165: 'R&B', 85: 'Alternative', 106: 'Électro', 466: 'Folk', 144: 'Reggae', 129: 'Jazz', 52: 'Chanson française', 84: 'Country', 98: 'Classique', 173: 'Musique de film ou de jeu', 464: 'Metal', 169: 'Soul et funk', 153: 'Blues', 197: 'Latino', 2: 'Musique africaine', 12: 'Musique arabe', 16: 'Musique asiatique', 75: 'Musique brésilienne', 81: 'Musique indienne' },
+  en: { 132: 'Pop', 116: 'Hip hop', 152: 'Rock', 113: 'Dance', 165: 'R&B', 85: 'Alternative', 106: 'Electronic', 466: 'Folk', 144: 'Reggae', 129: 'Jazz', 52: 'French chanson', 84: 'Country', 98: 'Classical', 173: 'Film or game music', 464: 'Metal', 169: 'Soul & funk', 153: 'Blues', 197: 'Latin', 2: 'African music', 12: 'Arabic music', 16: 'Asian music', 75: 'Brazilian music', 81: 'Indian music' },
+}[LANG];
 
 const { SPOKEN, AMBIENCE, normLabel, isMusic, randomId } = SillonFilter;
 const BATCH = 10;
@@ -445,7 +523,20 @@ function dz(path, timeout = 6000) {
 // --- Réserve : titres tirés au hasard et filtrés chaque jour par GitHub Actions (tools/build-pool.js) ---
 // Une seule requête Deezer par titre (pour un extrait frais) au lieu d'une vingtaine.
 const pool = { queue: [], chunks: null, version: '', loading: null };
-const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+// Hasard reproductible : même graine, même suite (platine partagée, choix de la devinette du jour).
+function seeded(str) {
+  let a = 0x9e3779b9;
+  for (const ch of str) a = Math.imul(a ^ ch.charCodeAt(0), 2654435761);
+  return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+// --- Platine : ?platine=CODE donne à tous la même suite de titres, dans le même ordre ---
+const params = new URLSearchParams(location.search);
+const platine = (p => /^[A-Z2-9]{6}$/.test(p) ? p : null)((params.get('platine') || '').toUpperCase());
+const rand = platine ? seeded('platine:' + platine) : Math.random;
+const platineArtists = new Set(); // en platine, on ignore l'historique personnel pour que la suite soit la même chez tous
+const heard = id => platine ? platineArtists.has(id) : seenArtists.has(id);
+const shuffle = (a, r = rand) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
 async function loadChunk() {
   if (!pool.chunks) {
@@ -466,25 +557,26 @@ async function fromPool() {
       if (!pool.queue.length) return null; // réserve épuisée ou absente
     }
     const e = pool.queue.pop(); // { i: titre, a: artiste, g: genre, l: label }
-    if (seenArtists.has(e.a) || blocks.artists.has(String(e.a)) || blocks.labels.has(normLabel(e.l))) continue;
+    if (heard(e.a) || blocks.artists.has(String(e.a)) || blocks.labels.has(normLabel(e.l))) continue;
     let tr;
     try { tr = await dz('/track/' + e.i); }
     catch (err) { if (err instanceof Error || err?.code === 4) throw err; continue; } // Deezer refuse : on passe à la source de secours
-    if (!tr.preview || !tr.artist || seenArtists.has(tr.artist.id)) continue;
+    if (!tr.preview || !tr.artist || heard(tr.artist.id)) continue;
     const album = { ...tr.album, genre_id: e.g, label: e.l };
     if (!isMusic(tr, album, blocks)) continue; // le filtre a pu évoluer depuis le tirage
     seenArtists.add(tr.artist.id);
+    platineArtists.add(tr.artist.id);
     return { track: tr, artist: tr.artist, album };
   }
   return null;
 }
 
-// Deezer d'abord (réserve, puis tirage direct). S'il refuse ou ne répond plus, Apple Music prend le relais 10 minutes.
+// Deezer d'abord (réserve tirée chaque nuit). S'il refuse ou ne répond plus, Apple Music prend le relais 10 minutes.
 let deezerDownUntil = 0;
 async function findTrack() {
   await sharedBlocks;
   if (Date.now() > deezerDownUntil) {
-    try { return (await fromPool()) || await drawDirect(); }
+    try { const d = await fromPool(); if (d) return d; } // réserve épuisée : Apple Music, sans marquer Deezer en panne
     catch { deezerDownUntil = Date.now() + 10 * 60000; }
   }
   return drawApple();
@@ -579,6 +671,7 @@ function fill(c, { track, artist, album }) {
       <div class="cover" role="button" tabindex="0" aria-label="${t('playPause')}" style="background-image:url('${esc(cover)}')"><div class="playIcon" aria-hidden="true"><i><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l15 8-15 8z"/></svg></i></div></div>
     </div>
     <div class="meta"><div class="txt">
+      ${c.daily ? guessHtml() : ''}
       <button class="reveal"><b>?</b><span>${t('reveal')}</span></button>
       <div class="title">${esc(track.title)}</div>
       <div class="artist">${esc(artist.name)}</div>
@@ -586,6 +679,7 @@ function fill(c, { track, artist, album }) {
         ${year && year !== '0000' ? `<span>${year}</span>` : ''}
         ${track.album?.title ? `<span>${esc(track.album.title)}</span>` : ''}
       </div>
+      ${c.daily ? '<div class="gres" aria-live="polite"></div>' : ''}
     </div>
     <div class="side">
       <button class="report" aria-label="${t('notMusic')}" title="${t('notMusic')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg></button>
@@ -598,8 +692,11 @@ function fill(c, { track, artist, album }) {
       ? `<div class="apple"><a href="${esc(track.link)}" target="_blank" rel="noopener"><img src="badges/listen-on-apple-music.svg" alt="Listen on Apple Music" width="120" height="35"></a><small>Provided courtesy of iTunes</small></div>`
       : `<a class="src" href="${esc(track.link || artist.link)}" target="_blank" rel="noopener">${t('preview')} · ${SOURCE_NAMES[track.source || 'deezer']}</a>`}`;
   c.el.classList.toggle('current', cards.indexOf(c) === current);
-  c.el.classList.toggle('blind', blindMode && !c.revealed);
+  c.el.classList.toggle('daily', !!c.daily);
+  if (c.daily && guesses()[daily.day]) { c.revealed = true; showResult(c); } // déjà joué aujourd'hui
+  c.el.classList.toggle('blind', (blindMode || c.daily) && !c.revealed);
   labelCard(c);
+  c.el.querySelectorAll('.chips button').forEach(b => b.onclick = e => { e.stopPropagation(); pickGuess(c, b); });
   c.el.querySelector('.reveal').onclick = e => { e.stopPropagation(); reveal(c); };
   const keepBtn = c.el.querySelector('.keep');
   keepBtn.classList.toggle('on', kept.some(k => k.trackId === track.id));
@@ -661,7 +758,7 @@ function toast(text) {
 }
 
 function topUp() {
-  while (cards.length - Math.max(current, 0) <= AHEAD && pending < 2) {
+  while (cards.length - Math.max(current, 0) <= AHEAD && pending < (platine ? 1 : 2)) { // en platine, un tirage à la fois pour garder l'ordre
     const c = placeholder();
     pending++;
     findTrack()
@@ -774,6 +871,77 @@ function reveal(c) {
   c.el.classList.remove('blind');
   labelCard(c);
   if (wasBlind && cards.indexOf(c) === current) setSession(c);
+  if (c.daily) saveGuess(c);
+}
+
+// --- Devinette du jour : genre et décennie du titre du jour, à deviner avant de révéler ---
+// Les choix proposés dépendent seulement du jour : tout le monde a les mêmes.
+let daily = null; // { day, n, i, g, y }, voir tools/pick-daily.js
+const guesses = () => store.get('guesses', {});
+const parisDay = (offset = 0) => new Date(Date.now() - offset * 86400000).toLocaleDateString('sv-SE', { timeZone: 'Europe/Paris' });
+
+function guessOptions() {
+  const r = seeded('devinette:' + daily.day);
+  const others = shuffle(Object.keys(GENRES).map(Number).filter(g => g !== daily.g), r).slice(0, 3);
+  const dec = Math.floor(daily.y / 10) * 10;
+  const near = shuffle([-30, -20, -10, 10, 20, 30].map(k => dec + k).filter(d => d >= 1930 && d <= 2020), r).slice(0, 3);
+  return { genres: shuffle([daily.g, ...others], r), decades: [dec, ...near].sort((a, b) => a - b), dec };
+}
+
+function guessHtml() {
+  const o = guessOptions();
+  return `<div class="guess">
+    <p>${t('genreQ')}</p><div class="chips" data-k="g">${o.genres.map(g => `<button data-v="${g}">${esc(GENRES[g])}</button>`).join('')}</div>
+    <p>${t('decadeQ')}</p><div class="chips" data-k="d">${o.decades.map(d => `<button data-v="${d}">${t('decade', d)}</button>`).join('')}</div>
+  </div>`;
+}
+
+function pickGuess(c, b) {
+  const k = b.parentElement.dataset.k;
+  (c.guess ||= {})[k] = +b.dataset.v;
+  b.parentElement.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  if (c.guess.g != null && c.guess.d != null) setTimeout(() => reveal(c), 450); // les deux choisis : on révèle
+}
+
+function saveGuess(c) {
+  const all = guesses();
+  if (!all[daily.day]) {
+    const g = c.guess || {};
+    all[daily.day] = { g: g.g == null ? null : g.g === daily.g, d: g.d == null ? null : g.d === guessOptions().dec };
+    store.set('guesses', all);
+    if (g.g != null || g.d != null) bump('guesses');
+    scheduleSync();
+  }
+  showResult(c);
+}
+
+// Série : jours joués d'affilée, un jour manqué toléré. Visible seulement par soi.
+function streak() {
+  const all = guesses();
+  let n = 0, gap = 0;
+  for (let i = 0; i < 1000; i++) {
+    if (all[parisDay(i)]) { n++; gap = 0; } else if (++gap > 1) break;
+  }
+  return n;
+}
+
+function showResult(c) {
+  const res = guesses()[daily.day];
+  const box = c.el.querySelector('.gres');
+  if (!res || !box) return;
+  c.el.classList.add('played');
+  const word = ok => ok == null ? t('skipped') : ok ? t('right') : t('wrong');
+  box.innerHTML = `${t('genreQ').replace(/ ?\?$/, '')} : <b>${esc(GENRES[daily.g])}</b>, ${word(res.g)}<br>
+    ${t('decadeQ').replace(/ ?\?$/, '')} : <b>${t('decade', guessOptions().dec)}</b>, ${word(res.d)}<br>${t('streak', streak())}<br>
+    <button class="shareRes">${t('shareResult')}</button>`;
+  box.querySelector('.shareRes').onclick = async e => {
+    e.stopPropagation();
+    const sq = ok => ok == null ? '–' : ok ? '■' : '□';
+    const text = t('resultText', daily.n, sq(res.g), sq(res.d), t('streak', streak())) + `\n${location.origin}${location.pathname}?jour`;
+    bump('guess_shares');
+    if (navigator.share) { try { await navigator.share({ text }); return; } catch (err) { if (err.name === 'AbortError') return; } }
+    toast(await copyText(text) ? t('resultCopied') : t('copyFailed'));
+  };
 }
 function setBlind(on) {
   blindMode = on;
@@ -781,7 +949,7 @@ function setBlind(on) {
   const btn = document.getElementById('blindBtn');
   btn.classList.toggle('on', on);
   btn.setAttribute('aria-pressed', on);
-  cards.forEach(c => { c.el.classList.toggle('blind', on && !!c.data && !c.revealed); labelCard(c); });
+  cards.forEach(c => { c.el.classList.toggle('blind', (on || c.daily) && !!c.data && !c.revealed); labelCard(c); });
   if (cards[current]?.data) setSession(cards[current]);
 }
 document.getElementById('blindBtn').onclick = () => { setBlind(!blindMode); toast(t(blindMode ? 'blindOn' : 'blindOff')); };
@@ -802,11 +970,15 @@ function entryOf(c) {
   return {
     trackId: track.id, source: track.source || 'deezer', title: track.title, artist: artist.name, artistLink: artist.link,
     cover: track.album?.cover_medium || artist.picture_medium || '', at: Date.now(),
+    g: GENRES[c.data.album?.genre_id] ? c.data.album.genre_id : undefined, y: yearOf(track) || undefined,
   };
 }
 
+const yearOf = track => { const y = +(track.release_date || track.album?.release_date || '').slice(0, 4); return y >= 1900 && y <= 2100 ? y : 0; };
+
 function remember(c) {
   const e = entryOf(c);
+  logCarnet(c);
   recent = [e, ...recent.filter(r => r.trackId !== e.trackId)].slice(0, 50);
   store.set('recent', recent);
   if (panelMode === 'recent') renderPanel();
@@ -847,11 +1019,87 @@ function renderPanel() {
     return `<li>
       <img src="${esc(k.cover)}" alt="">
       <div class="t"><b>${esc(k.title)}</b><span>${esc(k.artist)}</span>
-        <small class="row"><a href="${esc(k.artistLink)}" target="_blank" rel="noopener">${SOURCE_NAMES[k.source || 'deezer']}</a><a href="https://open.spotify.com/search/${q}" target="_blank" rel="noopener">Spotify</a><a href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener">YouTube</a><a href="https://bandcamp.com/search?q=${encodeURIComponent(k.artist)}" target="_blank" rel="noopener">Bandcamp</a></small></div>
+        <small class="row"><a href="${esc(k.artistLink)}" target="_blank" rel="noopener">${SOURCE_NAMES[k.source || 'deezer']}</a><a href="https://open.spotify.com/search/${q}" target="_blank" rel="noopener">Spotify</a><a href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener">YouTube</a><a href="https://bandcamp.com/search?q=${encodeURIComponent(k.artist)}" target="_blank" rel="noopener">Bandcamp</a><button class="thx" data-i="${i}">${t('thanks')}</button></small></div>
       ${action}</li>`;
   }).join('');
   ul.querySelectorAll('.x, .h').forEach(b => b.onclick = () => toggleKept(list[+b.dataset.i]));
+  ul.querySelectorAll('.thx').forEach(b => b.onclick = () => thank(list[+b.dataset.i]));
 }
+
+// --- Merci à l'artiste : un message tout prêt, et une recherche de ses pages (Deezer ne donne pas ses réseaux) ---
+async function thank(k) {
+  bump('thanks');
+  const ok = await copyText(t('thanksText', k.title, k.artist));
+  if (ok) toast(t('thanksCopied'));
+  open(`https://duckduckgo.com/?q=${encodeURIComponent(`"${k.artist}" instagram OR bandcamp OR facebook`)}`, '_blank', 'noopener');
+}
+
+// --- Partager son bac : un lien avec ses 20 derniers titres gardés, qu'un ami écoute avant que le hasard reprenne ---
+document.getElementById('bacBtn').onclick = async () => {
+  if (!kept.length) { toast('—'); return; }
+  bump('bac_shares');
+  const url = `${location.origin}${location.pathname}?bac=${kept.slice(0, 20).map(k => k.trackId).join('.')}`;
+  if (navigator.share) { try { await navigator.share({ title: 'Sillon', text: t('bacText'), url }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+  toast(await copyText(`${t('bacText')}\n${url}`) ? t('linkCopied') : t('copyFailed'));
+};
+
+// --- Platine : lancer, inviter, quitter ---
+const platineEl = document.getElementById('platine');
+const platineUrl = code => `${location.origin}${location.pathname}?platine=${code}`;
+async function invitePlatine() {
+  const url = platineUrl(platine);
+  if (navigator.share) { try { await navigator.share({ title: 'Sillon', text: t('platineText'), url }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+  toast(await copyText(`${t('platineText')}\n${url}`) ? t('linkCopied') : t('copyFailed'));
+}
+function openPlatine() {
+  document.getElementById('platineCode').textContent = platine || '';
+  const act = document.getElementById('platineActions');
+  act.innerHTML = platine
+    ? `<button class="primary" data-a="invite">${t('platineInvite')}</button><button data-a="leave">${t('platineLeave')}</button>`
+    : `<button class="primary" data-a="start">${t('platineStart')}</button>`;
+  act.querySelectorAll('button').forEach(b => b.onclick = () => {
+    if (b.dataset.a === 'invite') invitePlatine();
+    else if (b.dataset.a === 'leave') location.href = location.pathname;
+    else location.href = platineUrl([...crypto.getRandomValues(new Uint8Array(6))].map(x => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[x & 31]).join(''));
+  });
+  platineEl.classList.add('open');
+}
+document.getElementById('platineBtn').onclick = openPlatine;
+
+// --- Carnet de fouilles : ce qu'on a exploré (genres, décennies), visible seulement par soi ---
+const carnetOf = () => store.get('carnet', { n: 0, g: {}, d: {}, old: null });
+function logCarnet(c) {
+  if (c.logged) return; // un retour sur un titre déjà écouté ne compte pas deux fois
+  c.logged = true;
+  const cn = carnetOf();
+  cn.n++;
+  const g = c.data.album?.genre_id;
+  if (GENRES[g]) cn.g[g] = (cn.g[g] || 0) + 1;
+  const y = yearOf(c.data.track);
+  if (y) {
+    const d = Math.floor(y / 10) * 10;
+    cn.d[d] = (cn.d[d] || 0) + 1;
+    if (!cn.old || y < cn.old.y) cn.old = { y, title: c.data.track.title, artist: c.data.artist.name };
+  }
+  store.set('carnet', cn);
+}
+const DECADES = [1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020];
+document.getElementById('carnetBtn').onclick = () => {
+  const cn = carnetOf();
+  const gk = Object.keys(GENRES).sort((a, b) => GENRES[a].localeCompare(GENRES[b], LOCALE));
+  const nG = gk.filter(g => cn.g[g]).length, nD = DECADES.filter(d => cn.d[d]).length;
+  document.getElementById('carnetBody').innerHTML = `
+    <div class="carnetStats">
+      <div><b>${cn.n.toLocaleString(LOCALE)}</b><span>${t('carnetPlays')}</span></div>
+      <div><b>${seenArtists.size.toLocaleString(LOCALE)}</b><span>${t('carnetArtists')}</span></div>
+      <div><b>${nG}/${gk.length}</b><span>${t('carnetGenres')}</span></div>
+      <div><b>${nD}/${DECADES.length}</b><span>${t('carnetDecades')}</span></div>
+    </div>
+    <h3>${t('genreQ').replace(/ ?\?$/, '')}</h3><div class="chips">${gk.map(g => `<button tabindex="-1" class="${cn.g[g] ? 'on' : ''}">${esc(GENRES[g])}</button>`).join('')}</div>
+    <h3>${t('decadeQ').replace(/ ?\?$/, '')}</h3><div class="chips">${DECADES.map(d => `<button tabindex="-1" class="${cn.d[d] ? 'on' : ''}">${t('decade', d)}</button>`).join('')}</div>
+    <p class="hint">${cn.old ? esc(t('carnetOldest', cn.old.y, cn.old.title, cn.old.artist)) : t('carnetEmpty')}</p>`;
+  document.getElementById('carnetSheet').classList.add('open');
+};
 
 function openPanel(mode) {
   panelMode = panelMode === mode ? null : mode;
@@ -899,6 +1147,12 @@ function mergeState(r) {
   for (const e of [...(r.recent || []), ...recent]) if (!rec.has(e.trackId) || (e.at || 0) > (rec.get(e.trackId).at || 0)) rec.set(e.trackId, e);
   recent = [...rec.values()].sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 50);
   for (const a of r.seen || []) seenArtists.add(a);
+  if (r.guesses) store.set('guesses', { ...r.guesses, ...guesses() });
+  if (r.carnet) { // compteurs : on garde le plus grand de chaque côté
+    const a = carnetOf(), b = r.carnet;
+    const max = (x, y) => { const o = { ...x }; for (const k in y) o[k] = Math.max(o[k] || 0, y[k]); return o; };
+    store.set('carnet', { n: Math.max(a.n, b.n || 0), g: max(a.g, b.g || {}), d: max(a.d, b.d || {}), old: !a.old || (b.old && b.old.y < a.old.y) ? b.old || a.old : a.old });
+  }
   store.set('kept', kept); store.set('keptRemoved', keptRemoved); store.set('recent', recent);
   store.set('seen', [...seenArtists].slice(-20000));
   refreshKeepButtons();
@@ -913,7 +1167,7 @@ async function syncNow() {
     const key = await keyOf(syncCode);
     const [remote] = await rpc('sillon_sync_get', { p_key: key });
     if (remote?.data) mergeState(remote.data);
-    const data = { v: 1, kept, keptRemoved, recent, seen: [...seenArtists].slice(-20000) };
+    const data = { v: 1, kept, keptRemoved, recent, seen: [...seenArtists].slice(-20000), guesses: guesses(), carnet: carnetOf() };
     await rpc('sillon_sync_put', { p_key: key, p_data: data });
     store.set('syncAt', Date.now());
     renderSync('ok');
@@ -1008,7 +1262,87 @@ function renderExport() {
     ? items.map(k => `<li><span>${esc(k.artist)}</span> – ${esc(k.title)}</li>`).join('')
     : '<li>—</li>';
   document.querySelectorAll('#export .actions button').forEach(b => { b.disabled = !items.length; b.style.opacity = items.length ? 1 : .4; });
+  const rb = document.getElementById('recapImg');
+  rb.hidden = exportRange !== 'month';
+  recapFile = null;
+  if (items.length && exportRange === 'month') { rb.disabled = true; rb.style.opacity = .4; prepareRecap(items, exportMonth); }
 }
+
+// --- Image du mois (format story) : le nombre de titres gardés, leurs pochettes, quelques repères ---
+// Préparée dès l'ouverture : sur téléphone, le partage de fichier doit partir directement du geste.
+let recapFile = null;
+async function prepareRecap(items, month) {
+  const key = JSON.stringify([month, items.length]);
+  prepareRecap.key = key;
+  const blob = await recapImage(items, month);
+  if (prepareRecap.key !== key || !blob) return;
+  recapFile = new File([blob], `sillon-${month.y}-${String(month.m + 1).padStart(2, '0')}.jpg`, { type: 'image/jpeg' });
+  const rb = document.getElementById('recapImg');
+  rb.disabled = false; rb.style.opacity = 1;
+}
+
+async function recapImage(items, { y, m }) {
+  try {
+    const W = 1080, H = 1920;
+    const cv = Object.assign(document.createElement('canvas'), { width: W, height: H });
+    const x = cv.getContext('2d');
+    const covers = items.filter(k => k.cover).slice(0, 6).map(k => k.cover.replace('250x250', '500x500'));
+    const [grain, ...imgs] = await Promise.all([loadImg('grain.png'), ...covers.map(loadImg)].map(p => p.catch(() => null)));
+    await Promise.all([document.fonts.load('italic 750 200px Fraunces'), document.fonts.load('650 60px Fraunces'), document.fonts.load('700 30px "DM Sans"')]).catch(() => {});
+    x.fillStyle = '#f4e9d4'; x.fillRect(0, 0, W, H);
+    x.textAlign = 'center';
+    const month = new Date(y, m, 1).toLocaleDateString(LOCALE, { month: 'long' });
+    x.fillStyle = '#6b5a4a'; x.font = 'italic 650 60px Fraunces, Georgia, serif';
+    x.fillText(t('recapTitle', month), W / 2, 330);
+    x.font = 'italic 750 230px Fraunces, Georgia, serif';
+    x.fillStyle = '#241b14'; x.fillText(items.length, W / 2 + 8, 578);
+    x.fillStyle = '#e4572e'; x.fillText(items.length, W / 2, 570);
+    x.fillStyle = '#241b14'; x.font = '700 34px "DM Sans", sans-serif';
+    if ('letterSpacing' in x) x.letterSpacing = '5px';
+    x.fillText(t('recapKept').toUpperCase(), W / 2, 650);
+    if ('letterSpacing' in x) x.letterSpacing = '0px';
+    // Pochettes en grille, légèrement de travers, comme posées sur la table
+    const S = 280, gap = 36, cols = 3, rows = Math.ceil(Math.min(6, items.length) / cols) || 1;
+    const PAL = ['#e9b44c', '#e4572e', '#2a9d8f', '#7b4b6e', '#7fb7dc', '#a3ad62'];
+    for (let i = 0; i < Math.min(6, items.length); i++) {
+      const n = Math.min(cols, Math.min(6, items.length) - Math.floor(i / cols) * cols);
+      const cx = W / 2 + ((i % cols) - (n - 1) / 2) * (S + gap), cy = 740 + S / 2 + Math.floor(i / cols) * (S + gap);
+      x.save(); x.translate(cx, cy); x.rotate(((i * 37) % 7 - 3) * Math.PI / 180);
+      x.fillStyle = 'rgba(36,27,20,.85)'; x.fillRect(-S / 2 + 8, -S / 2 + 10, S, S);
+      x.fillStyle = PAL[i]; x.fillRect(-S / 2, -S / 2, S, S);
+      if (imgs[i]) x.drawImage(imgs[i], -S / 2, -S / 2, S, S);
+      x.restore();
+    }
+    const genres = new Set(items.map(k => k.g).filter(Boolean)).size;
+    const oldest = Math.min(...items.map(k => k.y || 9999));
+    const facts = t('recapFacts', genres, oldest < 9999 ? oldest : 0);
+    const fy = 740 + rows * (S + gap) + 70;
+    x.fillStyle = '#6b5a4a'; x.font = 'italic 500 44px Fraunces, Georgia, serif';
+    if (facts) x.fillText(facts, W / 2, fy);
+    x.font = '700 40px "DM Sans", sans-serif';
+    const label = location.hostname.endsWith('sillon.cloud') ? 'sillon.cloud' : location.host;
+    const pw = x.measureText(label).width + 90, ph = 96, px = (W - pw) / 2, py = Math.min(H - 400, fy + 70);
+    const pill = (ox, oy) => { x.beginPath(); x.roundRect(px + ox, py + oy, pw, ph, ph / 2); };
+    x.fillStyle = '#241b14'; pill(7, 7); x.fill();
+    x.fillStyle = '#e9b44c'; pill(0, 0); x.fill();
+    x.lineWidth = 4; x.strokeStyle = '#241b14'; x.stroke();
+    x.fillStyle = '#241b14'; x.textBaseline = 'middle'; x.fillText(label, W / 2, py + ph / 2 + 2);
+    if (grain) { x.globalCompositeOperation = 'multiply'; x.globalAlpha = .55; x.fillStyle = x.createPattern(grain, 'repeat'); x.fillRect(0, 0, W, H); }
+    return await new Promise(ok => cv.toBlob(ok, 'image/jpeg', .92));
+  } catch { return null; }
+}
+
+document.getElementById('recapImg').onclick = async () => {
+  if (!recapFile) return;
+  bump('recap_images');
+  if (navigator.canShare?.({ files: [recapFile] })) {
+    try { await navigator.share({ files: [recapFile] }); return; } catch (e) { if (e.name === 'AbortError') return; }
+  }
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(recapFile), download: recapFile.name });
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  toast(t('imageSaved'));
+};
 
 function openExport(range = 'month', month = null) {
   exportRange = range;
@@ -1111,7 +1445,7 @@ document.getElementById('go').onclick = () => {
 };
 // --- Partage d'un titre : le lien ouvre Sillon sur ce titre, puis le hasard reprend ---
 // ?t=123 pour Deezer, ?t=ap:123 pour Apple Music.
-const shareUrl = track => `${location.origin}${location.pathname}?t=${encodeURIComponent(track.id)}`;
+const shareUrl = (track, msg) => `${location.origin}${location.pathname}?t=${encodeURIComponent(track.id)}${msg ? '&m=' + encodeURIComponent(msg) : ''}`;
 
 // Le partage ouvre une fiche : l'image pour une story (préparée dès l'ouverture, car le partage
 // de fichier doit partir directement du geste) ou le lien.
@@ -1127,6 +1461,7 @@ function shareTrack(c) {
   document.getElementById('shareTitle').textContent = `${artist.name} – ${track.title}`;
   const img = document.getElementById('sharePreview');
   img.removeAttribute('src');
+  document.getElementById('shareNote').value = '';
   const btn = document.getElementById('shareStory');
   btn.disabled = true;
   shareEl.classList.add('open');
@@ -1145,7 +1480,7 @@ document.getElementById('shareLink').onclick = async () => {
   if (!c?.data) return;
   const { track, artist } = c.data;
   bump('shares');
-  const url = shareUrl(track);
+  const url = shareUrl(track, document.getElementById('shareNote').value.trim().slice(0, 140));
   const text = `${artist.name} – ${track.title}`;
   shareEl.classList.remove('open');
   if (navigator.share) {
@@ -1285,12 +1620,15 @@ async function storyImage(c) {
 }
 
 // Titre du jour : tiré au hasard dans la réserve chaque matin (tools/pick-daily.js), le même pour tout le monde.
-const dailyEntry = fetch('pool/daily.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null);
+const dailyEntry = fetch('pool/daily.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null)
+  .then(d => (d?.i && GENRES[d.g] && d.y ? (daily = d) : null));
 
 async function loadShared(id) {
   if (id === 'daily') {
     const d = await dailyEntry;
-    return d?.i ? loadShared(String(d.i)) : null;
+    const r = d && await loadShared(String(d.i));
+    if (r) r.album = { ...r.album, genre_id: d.g }; // pour le carnet
+    return r;
   }
   if (/^ap:\d+$/.test(id)) {
     const res = await fetch(`https://itunes.apple.com/lookup?country=${APPLE_COUNTRY}&id=${id.slice(3)}`).then(r => r.json());
@@ -1304,50 +1642,73 @@ async function loadShared(id) {
   return null;
 }
 
-// L'accueil annonce le titre partagé : sa pochette sur l'étiquette du disque.
-function announceShared({ track, artist }, intro = t('sharedIntro')) {
+// L'accueil annonce ce qu'on vous a envoyé : la pochette sur l'étiquette du disque, et le mot de l'expéditeur.
+const note = (params.get('m') || '').trim().slice(0, 140);
+function announce(html, cover) {
   const start = document.getElementById('start');
   if (!start) return;
-  const cover = track.album?.cover_xl || track.album?.cover_medium || '';
-  const label = start.querySelector('.label');
-  label.style.backgroundImage = `url('${cover}')`;
-  label.style.backgroundSize = 'cover';
-  label.querySelector('span').remove();
-  start.querySelector('p').innerHTML = `${intro}<br><em>${esc(track.title)}</em> · ${esc(artist.name)}`;
+  if (cover) {
+    const label = start.querySelector('.label');
+    label.style.backgroundImage = `url('${cover}')`;
+    label.style.backgroundSize = 'cover';
+    label.querySelector('span')?.remove();
+  }
+  start.querySelector('p').innerHTML = html + (note ? `<br><span class="note">${t('noteIntro')} « ${esc(note)} »</span>` : '');
+}
+function announceShared({ track, artist }) {
+  announce(`${t('sharedIntro')}<br><em>${esc(track.title)}</em> · ${esc(artist.name)}`, track.album?.cover_xl || track.album?.cover_medium || '');
 }
 
-// Carte dont le titre est connu d'avance (lien partagé, titre du jour) ; si elle échoue, le hasard prend le relais.
+// Carte dont le titre est connu d'avance (lien partagé, bac, devinette) ; si elle échoue, le hasard prend le relais.
 function fillWith(c, id, onLoad) {
   pending++;
   loadShared(id)
     .then(d => { if (!d) throw new Error('introuvable'); seenArtists.add(d.artist.id); fill(c, d); onLoad?.(d); })
-    .catch(() => findTrack().then(d => fill(c, d)).catch(() => { c.failed = true; }))
+    .catch(() => { c.daily = false; return findTrack().then(d => fill(c, d)).catch(() => { c.failed = true; }); })
     .finally(() => { pending--; topUp(); });
 }
 
-// ?t=123 : titre partagé. ?jour (ou ?today) : titre du jour, pour les liens publiés sur les réseaux.
-const params = new URLSearchParams(location.search);
+// Liens reçus. ?platine=CODE : même suite pour tous. ?bac=1.2.3 : les titres gardés d'un ami.
+// ?t=123 : un titre partagé. ?jour (ou ?today) : la devinette du jour. &m= : un mot de l'expéditeur.
 const sharedId = params.get('t') || (params.has('jour') || params.has('today') ? 'daily' : null);
-if (sharedId) {
-  queueMicrotask(() => bump(sharedId === 'daily' ? 'daily_opens' : 'shared_opens')); // une fois le module de mesure (plus bas) initialisé
+const bacIds = (params.get('bac') || '').split('.').filter(x => /^(ap:)?\d{1,12}$/.test(x)).slice(0, 20);
+const dailyBtn = document.getElementById('daily');
+if (platine) {
+  queueMicrotask(() => bump('platine_opens')); // une fois le module de mesure (plus bas) initialisé
+  announce(t('platineIntro', platine));
+  dailyBtn.textContent = t('platineInvite');
+  dailyBtn.hidden = false;
+  dailyBtn.onclick = () => invitePlatine();
+} else if (bacIds.length) {
+  queueMicrotask(() => bump('bac_opens'));
   history.replaceState(null, '', location.pathname);
-  fillWith(placeholder(), sharedId, d => announceShared(d, sharedId === 'daily' ? t('dailyIntro') : undefined));
-} else {
-  dailyEntry.then(d => { if (d?.i) document.getElementById('daily').hidden = false; });
-}
-
-// Bouton « Titre du jour » de l'accueil : la carte passe en tête du fil, avant les titres déjà tirés.
-document.getElementById('daily').onclick = () => {
-  bump('daily_opens');
+  announce(t('bacIntro', bacIds.length));
+  bacIds.forEach(id => fillWith(placeholder(), id));
+} else if (sharedId) {
+  queueMicrotask(() => bump(sharedId === 'daily' ? 'daily_opens' : 'shared_opens'));
+  history.replaceState(null, '', location.pathname);
   const c = placeholder();
-  feed.prepend(c.el);
-  cards.pop(); cards.unshift(c);
-  if (current >= 0) current++;
-  feed.scrollTop = 0;
-  setCurrent(0);
-  fillWith(c, 'daily');
-  document.getElementById('go').click();
-};
+  if (sharedId === 'daily') {
+    c.daily = true; // rien du titre sur l'accueil : c'est une devinette
+    dailyEntry.then(d => d && announce(t('dailyIntro', d.n)));
+    fillWith(c, 'daily');
+  } else fillWith(c, sharedId, announceShared);
+} else {
+  dailyEntry.then(d => { if (d) dailyBtn.hidden = false; });
+  // Bouton « Devinette du jour » de l'accueil : la carte passe en tête du fil, avant les titres déjà tirés.
+  dailyBtn.onclick = () => {
+    bump('daily_opens');
+    const c = placeholder();
+    c.daily = true;
+    feed.prepend(c.el);
+    cards.pop(); cards.unshift(c);
+    if (current >= 0) current++;
+    feed.scrollTop = 0;
+    setCurrent(0);
+    fillWith(c, 'daily');
+    document.getElementById('go').click();
+  };
+}
 
 // --- Mesure d'audience anonyme : compteurs agrégés par jour, aucun identifiant envoyé ---
 // Rétention : chaque téléphone envoie au plus un « passage » par jour avec la date de sa première visite.

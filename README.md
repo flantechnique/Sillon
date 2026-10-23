@@ -52,9 +52,20 @@ Tout est portable : l'appli ne dépend que de chemins relatifs.
 - **Si Deezer coupe l'accès** : Apple Music prend le relais tout seul. Pour en faire la source principale, inverser l'ordre dans `findTrack()`.
 - **Si Supabase disparaît** : recréer les tables avec les migrations `sillon_*` (projet top-youtube), changer `SB_URL` et `SB_KEY` dans `index.html` et `tools/build-pool.js`.
 
-## Titre du jour
+## Devinette du jour
 
-Chaque matin, après le tirage de la réserve, `tools/pick-daily.js` choisit au hasard un titre de la réserve et l'écrit dans `pool/daily.json`. Le même pour tout le monde jusqu'au lendemain, sans aucun critère de popularité. Accessible depuis l'accueil, ou par le lien `https://sillon.cloud/?jour` (`?today` en anglais).
+Chaque matin, après le tirage de la réserve, `tools/pick-daily.js` choisit au hasard un titre de la réserve (avec un genre connu et une année) et l'écrit dans `pool/daily.json`. Le même pour tout le monde jusqu'au lendemain, sans aucun critère de popularité. On l'écoute à l'aveugle, on devine le genre et la décennie parmi quatre choix (les mêmes pour tous : ils dépendent seulement du jour), puis on révèle. Le résultat se partage comme un Wordle (`■` juste, `□` raté). La série de jours joués d'affilée (un jour manqué toléré) reste sur le téléphone. Lien direct : `https://sillon.cloud/?jour` (`?today` en anglais).
+
+## Côté social, sans compteurs
+
+Rien de public : pas de profil, pas de chiffre, pas de classement. Seulement des liens qu'on choisit d'envoyer.
+
+- **Un mot avec le partage** : `&m=` dans le lien d'un titre, affiché sur l'accueil de celui qui le reçoit.
+- **Platine** (`?platine=CODE`) : tous ceux qui ouvrent le même lien entendent la même suite de titres, dans le même ordre (tirage à graine fixe, historique personnel ignoré, un tirage à la fois).
+- **Partager son bac** (`?bac=id.id.id`) : les 20 derniers titres gardés, joués en premier chez l'ami, puis le hasard reprend.
+- **Merci à l'artiste** : depuis la liste, un message tout prêt copié et une recherche de ses pages (Deezer ne fournit pas les réseaux des artistes).
+- **Carnet de fouilles** : genres et décennies explorés, titre le plus ancien. Privé, synchronisé avec le code.
+- **Image du mois** : depuis Exporter, une image au format story avec le nombre de titres gardés et leurs pochettes.
 
 ## Surveillance
 
