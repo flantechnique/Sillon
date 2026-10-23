@@ -26,7 +26,7 @@ Si Supabase ne répond pas, l'appli fonctionne quand même (pas de liste d'exclu
 ## Règles à respecter
 
 - **Deezer** : seulement les extraits de 30 s, jamais de stockage de l'audio, crédit « Deezer » avec lien sur chaque titre. La réserve ne contient que des identifiants. Respecter ~50 requêtes / 5 s par adresse IP (le tirage est réglé à 8/s).
-- **Apple Music** (iTunes Search API) : extraits seulement, crédit « Apple Music » avec lien sur chaque titre, ~20 requêtes / minute par adresse IP.
+- **Apple Music** (iTunes Search API) : extraits seulement, jamais mis en cache ; sur chaque titre Apple, le badge officiel « Listen on Apple Music » non modifié (`badges/`, récupéré sur toolbox.marketingtools.apple.com) avec lien direct vers le titre, et la mention « Provided courtesy of iTunes » ; ~20 requêtes / minute par adresse IP. Les extraits doivent servir à promouvoir le titre, jamais un autre produit.
 - **GitHub Pages** : pas d'usage commercial, ~100 Go de bande passante par mois.
 
 ## Veille des conditions

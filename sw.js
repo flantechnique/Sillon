@@ -1,6 +1,6 @@
 // Met en cache l'interface ; les titres et l'API Deezer restent en ligne.
-const CACHE = 'sillon-v17';
-const SHELL = ['./', 'index.html', 'filter.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-maskable.png', 'apple-touch-icon.png', 'grain.png', 'fonts/fraunces.woff2', 'fonts/fraunces-italic.woff2', 'fonts/dmsans.woff2'];
+const CACHE = 'sillon-v18';
+const SHELL = ['./', 'index.html', 'filter.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-maskable.png', 'apple-touch-icon.png', 'grain.png', 'fonts/fraunces.woff2', 'fonts/fraunces-italic.woff2', 'fonts/dmsans.woff2', 'badges/listen-on-apple-music.svg'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

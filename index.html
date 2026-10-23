@@ -119,6 +119,10 @@ body::after { content: ''; position: fixed; inset: 0; z-index: 40; pointer-event
 .side .report { background: transparent; border-color: currentColor; color: var(--fg); box-shadow: none; opacity: .7; width: 44px; height: 44px; }
 .src { margin-top: 16px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; text-decoration: none; opacity: .55; }
 .src:hover { opacity: 1; }
+.apple { margin-top: 14px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.apple a { display: block; padding: 4px; line-height: 0; } /* marge libre autour du badge (1/10 de sa hauteur) */
+.apple img { height: 35px; width: auto; }
+.apple small { font-size: 10px; letter-spacing: .04em; opacity: .65; }
 @media (max-width: 560px) {
   .meta { flex-direction: column; gap: 14px; }
   .side { width: 100%; justify-content: flex-end; align-items: center; }
@@ -522,7 +526,10 @@ function fill(c, { track, artist, album }) {
       <button class="keep" aria-label="${t('keep')}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.5-9.2C1 8.2 3.3 4.5 7 4.5c2 0 3.6 1.1 5 2.8 1.4-1.7 3-2.8 5-2.8 3.7 0 6 3.7 4.5 7.3C19.5 16.4 12 21 12 21z"/></svg></button>
       <button class="next" aria-label="${t('next')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
     </div></div>
-    <a class="src" href="${esc(track.link || artist.link)}" target="_blank" rel="noopener">${t('preview')} · ${SOURCE_NAMES[track.source || 'deezer']}</a>`;
+    ${track.source === 'apple'
+      // Règles Apple : badge officiel non modifié, lien direct vers le titre, mention « provided courtesy of iTunes ».
+      ? `<div class="apple"><a href="${esc(track.link)}" target="_blank" rel="noopener"><img src="badges/listen-on-apple-music.svg" alt="Listen on Apple Music" width="120" height="35"></a><small>Provided courtesy of iTunes</small></div>`
+      : `<a class="src" href="${esc(track.link || artist.link)}" target="_blank" rel="noopener">${t('preview')} · ${SOURCE_NAMES[track.source || 'deezer']}</a>`}`;
   c.el.classList.toggle('current', cards.indexOf(c) === current);
   c.el.classList.toggle('blind', blindMode && !c.revealed);
   c.el.querySelector('.reveal').onclick = e => { e.stopPropagation(); reveal(c); };
