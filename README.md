@@ -18,7 +18,7 @@ Application web statique, installable sur téléphone.
 | Synchronisation | Table `sillon_sync` + fonctions `sillon_sync_get/put` : une ligne par code, identifiée par l'empreinte SHA-256 du code (le code ne quitte jamais les appareils) | Supabase (projet top-youtube) |
 
 Sources audio, dans l'ordre :
-1. **Deezer** : réserve (1 requête par titre), puis tirage direct si la réserve est vide.
+1. **Deezer** : réserve (1 requête par titre). Si la réserve est épuisée, Apple Music prend le relais.
 2. **Apple Music** : prend le relais automatiquement pendant 10 minutes si Deezer refuse ou ne répond plus. Même tirage au hasard (200 identifiants par requête), même catalogue grand public.
 
 Si Supabase ne répond pas, l'appli fonctionne quand même (pas de liste d'exclusion, signalements perdus).
