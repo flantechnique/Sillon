@@ -24,6 +24,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Une platine vinyle turquoise et le titre Sillon">
 <meta property="og:locale" content="fr_FR">
+<meta property="og:locale:alternate" content="en_US">
 <meta name="twitter:card" content="summary_large_image">
 <style>
 @font-face { font-family: 'Fraunces'; font-style: normal; font-weight: 400 800; font-display: swap; src: url(fonts/fraunces.woff2) format('woff2'); }
@@ -218,48 +219,94 @@ header > * { pointer-events: auto; }
 <div id="start">
   <div class="deck"><div class="platter"><div class="vinyl"><div class="sheen"></div><div class="label"><span>Sillon</span></div></div></div><div class="arm"><svg viewBox="0 0 100 100" aria-hidden="true"><line x1="84" y1="12" x2="47" y2="80" stroke="#241b14" stroke-width="7.5" stroke-linecap="round"/><line x1="84" y1="12" x2="47" y2="80" stroke="#efe2c8" stroke-width="4" stroke-linecap="round"/><path d="M41 76 l12 6 -5 11 -12 -6z" fill="#efe2c8" stroke="#241b14" stroke-width="2.2" stroke-linejoin="round"/><circle cx="84" cy="12" r="10" fill="#efe2c8" stroke="#241b14" stroke-width="2.4"/><circle cx="84" cy="12" r="3.2" fill="#241b14"/></svg></div></div>
   <h1>Sillon</h1>
-  <p>Un titre au hasard, d'un artiste au hasard.<br>Rien que la musique.</p>
-  <button id="go">Trouver le diamant</button>
+  <p data-t="tagline">Un titre au hasard, d'un artiste au hasard.<br>Rien que la musique.</p>
+  <button id="go" data-t="go">Trouver le diamant</button>
 </div>
 
 <header>
   <div class="logo"><i></i>Sillon</div>
   <div class="hbtns">
-    <button class="pill" id="recentBtn">Récents</button>
-    <button class="pill" id="keptBtn">Gardés <span id="keptN"></span></button>
+    <button class="pill" id="recentBtn" data-t="recent">Récents</button>
+    <button class="pill" id="keptBtn"><span data-t="kept">Gardés</span> <span id="keptN"></span></button>
   </div>
 </header>
 
 <div id="feed"></div>
-<div id="kept"><ul></ul><div class="panelLinks"><button id="exportBtn" class="syncLink">Exporter</button><button id="syncBtn" class="syncLink">Synchroniser mes appareils</button></div></div>
+<div id="kept"><ul></ul><div class="panelLinks"><button id="exportBtn" class="syncLink" data-t="export">Exporter</button><button id="syncBtn" class="syncLink" data-t="sync">Synchroniser mes appareils</button></div></div>
 <div id="export" class="sheet">
   <div class="box">
-    <button class="x" data-close aria-label="Fermer">×</button>
+    <button class="x" data-close aria-label="Fermer" data-t-aria="close">×</button>
     <h2 id="exportTitle"></h2>
-    <div class="seg" id="exportRange"><button data-range="month">Ce mois-ci</button><button data-range="all">Tout</button></div>
+    <div class="seg" id="exportRange"><button data-range="month">Ce mois-ci</button><button data-range="all" data-t="all">Tout</button></div>
     <ol id="exportList"></ol>
     <div class="actions">
-      <button id="exportPlaylist" class="primary">Créer une playlist</button>
-      <button id="exportCopy">Copier la liste</button>
+      <button id="exportPlaylist" class="primary" data-t="playlist">Créer une playlist</button>
+      <button id="exportCopy" data-t="copyList">Copier la liste</button>
     </div>
     <p class="hint" id="exportHint"></p>
-    <div class="backup"><button id="backupSave">Sauvegarder dans un fichier</button><label>Restaurer<input type="file" id="backupLoad" accept=".json,application/json" hidden></label></div>
+    <div class="backup"><button id="backupSave" data-t="backup">Sauvegarder dans un fichier</button><label><span data-t="restore">Restaurer</span><input type="file" id="backupLoad" accept=".json,application/json" hidden></label></div>
   </div>
 </div>
 <div id="sync">
   <div class="box">
-    <button id="syncClose" class="x" aria-label="Fermer">×</button>
+    <button id="syncClose" class="x" aria-label="Fermer" data-t-aria="close">×</button>
     <div id="qr"></div>
     <div id="syncCode"></div>
-    <p class="hint">À scanner avec l'autre téléphone, ou à saisir dans son Sillon.</p>
+    <p class="hint" data-t="syncHint">À scanner avec l'autre téléphone, ou à saisir dans son Sillon.</p>
     <div id="syncStatus"></div>
-    <form id="syncForm"><input id="syncInput" placeholder="Code d'un autre appareil" autocomplete="off" autocapitalize="characters" spellcheck="false"><button>Relier</button></form>
+    <form id="syncForm"><input id="syncInput" placeholder="Code d'un autre appareil" data-t-ph="syncPh" autocomplete="off" autocapitalize="characters" spellcheck="false"><button data-t="link">Relier</button></form>
   </div>
 </div>
 <audio id="audio" preload="auto"></audio>
 
 <script src="filter.js"></script>
 <script>
+// --- Langue : français si le téléphone est en français, anglais sinon ---
+const LANG_PARAM = new URLSearchParams(location.search).get('lang'); // ?lang=en pour forcer une langue
+const LANG = ['fr', 'en'].includes(LANG_PARAM) ? LANG_PARAM : /^fr\b/i.test(navigator.language || 'fr') ? 'fr' : 'en';
+const STR = {
+  fr: {
+    tagline: "Un titre au hasard, d'un artiste au hasard.<br>Rien que la musique.",
+    go: 'Trouver le diamant', recent: 'Récents', kept: 'Gardés', export: 'Exporter', sync: 'Synchroniser mes appareils',
+    close: 'Fermer', all: 'Tout', playlist: 'Créer une playlist', copyList: 'Copier la liste',
+    backup: 'Sauvegarder dans un fichier', restore: 'Restaurer',
+    syncHint: "À scanner avec l'autre téléphone, ou à saisir dans son Sillon.", syncPh: "Code d'un autre appareil", link: 'Relier',
+    digging: 'Tirage…', offline: 'Pas de réseau. Faites défiler pour réessayer.',
+    notMusic: 'Pas de la musique', share: 'Partager', keep: 'Garder', next: 'Suivant', remove: 'Retirer', preview: 'Extrait',
+    reported: 'Signalé', linkCopied: 'Lien copié', copyFailed: 'Copie impossible',
+    allKept: 'Tous les titres gardés', tracks: n => `${n} titre${n > 1 ? 's' : ''}`,
+    listCopied: 'Liste copiée.', copyFailedHere: 'Copie impossible sur cet appareil.',
+    playlistHint: 'Liste copiée. Sur TuneMyMusic, choisissez « texte » comme source, collez la liste, puis la plateforme de votre choix (Spotify, Deezer, Apple Music, YouTube Music…).',
+    restored: n => `Sauvegarde restaurée : ${n} titres gardés.`, badFile: 'Fichier non reconnu.',
+    badCode: 'Code invalide', syncOffline: 'Hors ligne — nouvel essai plus tard', synced: d => 'Synchronisé ' + d,
+    linkConfirm: code => `Relier cet appareil à ${code} ?\nTitres gardés, récents et artistes entendus seront partagés.`,
+    sharedIntro: 'On vous fait écouter',
+  },
+  en: {
+    tagline: 'A random track, by a random artist.<br>Nothing but the music.',
+    go: 'Find a gem', recent: 'Recent', kept: 'Saved', export: 'Export', sync: 'Sync my devices',
+    close: 'Close', all: 'All', playlist: 'Make a playlist', copyList: 'Copy the list',
+    backup: 'Save to a file', restore: 'Restore',
+    syncHint: 'Scan it with your other phone, or type it into its Sillon.', syncPh: 'Code from another device', link: 'Link',
+    digging: 'Digging…', offline: 'No connection. Scroll to try again.',
+    notMusic: 'Not music', share: 'Share', keep: 'Save', next: 'Next', remove: 'Remove', preview: 'Preview',
+    reported: 'Reported', linkCopied: 'Link copied', copyFailed: 'Copy failed',
+    allKept: 'All saved tracks', tracks: n => `${n} track${n > 1 ? 's' : ''}`,
+    listCopied: 'List copied.', copyFailedHere: "Copying isn't possible on this device.",
+    playlistHint: 'List copied. On TuneMyMusic, pick “text” as the source, paste the list, then choose your platform (Spotify, Deezer, Apple Music, YouTube Music…).',
+    restored: n => `Backup restored: ${n} saved tracks.`, badFile: 'File not recognized.',
+    badCode: 'Invalid code', syncOffline: 'Offline — will retry later', synced: d => 'Synced ' + d,
+    linkConfirm: code => `Link this device to ${code}?\nSaved tracks, recent tracks and artists already heard will be shared.`,
+    sharedIntro: 'Someone wants you to hear',
+  },
+}[LANG];
+const t = (k, ...a) => typeof STR[k] === 'function' ? STR[k](...a) : STR[k];
+const LOCALE = LANG === 'fr' ? 'fr-FR' : 'en-US';
+document.documentElement.lang = LANG;
+document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = t(el.dataset.t); });
+document.querySelectorAll('[data-t-aria]').forEach(el => el.setAttribute('aria-label', t(el.dataset.tAria)));
+document.querySelectorAll('[data-t-ph]').forEach(el => { el.placeholder = t(el.dataset.tPh); });
+
 const { SPOKEN, AMBIENCE, normLabel, isMusic, randomId } = SillonFilter;
 const BATCH = 10;
 const AHEAD = 3;
@@ -407,7 +454,7 @@ const PALETTES = [
 ];
 let paletteN = Math.floor(Math.random() * PALETTES.length);
 const RING = 2 * Math.PI * 48.5;
-const LOADER = '<div class="loader"><div class="vinyl"><div class="label"></div></div><div class="loading">Tirage…</div></div>';
+const LOADER = '<div class="loader"><div class="vinyl"><div class="label"></div></div><div class="loading">' + t('digging') + '</div></div>';
 const SOURCE_NAMES = { deezer: 'Deezer', apple: 'Apple Music', audius: 'Audius' };
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -446,12 +493,12 @@ function fill(c, { track, artist, album }) {
       </div>
     </div>
     <div class="side">
-      <button class="report" aria-label="Pas de la musique" title="Pas de la musique"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg></button>
-      <button class="share" aria-label="Partager" title="Partager"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
-      <button class="keep" aria-label="Garder"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.5-9.2C1 8.2 3.3 4.5 7 4.5c2 0 3.6 1.1 5 2.8 1.4-1.7 3-2.8 5-2.8 3.7 0 6 3.7 4.5 7.3C19.5 16.4 12 21 12 21z"/></svg></button>
-      <button class="next" aria-label="Suivant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+      <button class="report" aria-label="${t('notMusic')}" title="${t('notMusic')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg></button>
+      <button class="share" aria-label="${t('share')}" title="${t('share')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
+      <button class="keep" aria-label="${t('keep')}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.5-9.2C1 8.2 3.3 4.5 7 4.5c2 0 3.6 1.1 5 2.8 1.4-1.7 3-2.8 5-2.8 3.7 0 6 3.7 4.5 7.3C19.5 16.4 12 21 12 21z"/></svg></button>
+      <button class="next" aria-label="${t('next')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
     </div></div>
-    <a class="src" href="${esc(track.link || artist.link)}" target="_blank" rel="noopener">Extrait · ${SOURCE_NAMES[track.source || 'deezer']}</a>`;
+    <a class="src" href="${esc(track.link || artist.link)}" target="_blank" rel="noopener">${t('preview')} · ${SOURCE_NAMES[track.source || 'deezer']}</a>`;
   c.el.classList.toggle('current', cards.indexOf(c) === current);
   const keepBtn = c.el.querySelector('.keep');
   keepBtn.classList.toggle('on', kept.some(k => k.trackId === track.id));
@@ -470,7 +517,7 @@ async function report(c) {
   if (!c.data || c.reported) return;
   c.reported = true;
   const { track, artist, album } = c.data;
-  toast('Signalé');
+  toast(t('reported'));
   go(cards.indexOf(c) + 1);
 
   // Analyse du catalogue de l'artiste : combien de ses albums ressemblent à des ambiances ou des textes lus.
@@ -509,7 +556,7 @@ function topUp() {
     pending++;
     findTrack()
       .then(d => fill(c, d))
-      .catch(() => { c.el.innerHTML = '<div class="loader"><div class="loading">Pas de réseau. Faites défiler pour réessayer.</div></div>'; c.failed = true; })
+      .catch(() => { c.el.innerHTML = `<div class="loader"><div class="loading">${t('offline')}</div></div>`; c.failed = true; })
       .finally(() => { pending--; topUp(); store.set('seen', [...seenArtists].slice(-20000)); });
   }
 }
@@ -657,8 +704,8 @@ function renderPanel() {
   ul.innerHTML = list.map((k, i) => {
     const q = encodeURIComponent(k.artist + ' ' + k.title);
     const action = panelMode === 'kept'
-      ? `<button class="x" data-i="${i}" aria-label="Retirer">×</button>`
-      : `<button class="h${kept.some(x => x.trackId === k.trackId) ? ' on' : ''}" data-i="${i}" aria-label="Garder">${HEART}</button>`;
+      ? `<button class="x" data-i="${i}" aria-label="${t('remove')}">×</button>`
+      : `<button class="h${kept.some(x => x.trackId === k.trackId) ? ' on' : ''}" data-i="${i}" aria-label="${t('keep')}">${HEART}</button>`;
     return `<li>
       <img src="${esc(k.cover)}" alt="">
       <div class="t"><b>${esc(k.title)}</b><span>${esc(k.artist)}</span>
@@ -765,9 +812,9 @@ function renderSync(state) {
   document.getElementById('syncCode').textContent = syncCode || '';
   const at = store.get('syncAt', 0);
   document.getElementById('syncStatus').textContent =
-    state === 'bad' ? 'Code invalide' :
-    state === 'err' ? 'Hors ligne — nouvel essai plus tard' :
-    at ? 'Synchronisé ' + new Date(at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '…';
+    state === 'bad' ? t('badCode') :
+    state === 'err' ? t('syncOffline') :
+    at ? t('synced', new Date(at).toLocaleString(LOCALE, { dateStyle: 'short', timeStyle: 'short' })) : '…';
 }
 async function openSync() {
   if (!syncCode) { syncCode = newCode(); store.set('syncCode', syncCode); }
@@ -795,7 +842,7 @@ document.getElementById('syncForm').onsubmit = e => {
   if (!m) return;
   history.replaceState(null, '', location.pathname + location.search);
   const code = normCode(decodeURIComponent(m[1]));
-  if (code && code !== syncCode && confirm('Relier cet appareil à ' + code + ' ?\nTitres gardés, récents et artistes entendus seront partagés.')) linkCode(code);
+  if (code && code !== syncCode && confirm(t('linkConfirm', code))) linkCode(code);
 })();
 if (syncCode) syncNow();
 
@@ -805,7 +852,7 @@ if (syncCode) syncNow();
 const exportEl = document.getElementById('export');
 let exportRange = 'month';
 let exportMonth = { y: new Date().getFullYear(), m: new Date().getMonth() };
-const monthLabel = ({ y, m }) => { const s = new Date(y, m, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }); return s[0].toUpperCase() + s.slice(1); };
+const monthLabel = ({ y, m }) => { const s = new Date(y, m, 1).toLocaleDateString(LOCALE, { month: 'long', year: 'numeric' }); return s[0].toUpperCase() + s.slice(1); };
 const inMonth = (k, { y, m }) => { const d = new Date(k.at || 0); return d.getFullYear() === y && d.getMonth() === m; };
 const exportItems = () => exportRange === 'all' ? kept : kept.filter(k => inMonth(k, exportMonth));
 const asText = items => items.map(k => `${k.artist} - ${k.title}`).join('\n');
@@ -814,7 +861,7 @@ const setHint = t => { document.getElementById('exportHint').textContent = t; };
 function renderExport() {
   const items = exportItems();
   document.getElementById('exportTitle').textContent =
-    `${exportRange === 'all' ? 'Tous les titres gardés' : monthLabel(exportMonth)} · ${items.length} titre${items.length > 1 ? 's' : ''}`;
+    `${exportRange === 'all' ? t('allKept') : monthLabel(exportMonth)} · ${t('tracks', items.length)}`;
   const [bMonth, bAll] = document.querySelectorAll('#exportRange button');
   bMonth.textContent = monthLabel(exportMonth).split(' ')[0];
   bMonth.classList.toggle('on', exportRange === 'month');
@@ -845,11 +892,11 @@ async function copyText(t) {
 document.getElementById('exportBtn').onclick = () => openExport('month', { y: new Date().getFullYear(), m: new Date().getMonth() });
 document.querySelectorAll('#exportRange button').forEach(b => b.onclick = () => { exportRange = b.dataset.range; renderExport(); });
 document.getElementById('exportCopy').onclick = async () => {
-  setHint(await copyText(asText(exportItems())) ? 'Liste copiée.' : 'Copie impossible sur cet appareil.');
+  setHint(await copyText(asText(exportItems())) ? t('listCopied') : t('copyFailedHere'));
 };
 document.getElementById('exportPlaylist').onclick = async () => {
   await copyText(asText(exportItems()));
-  setHint('Liste copiée. Sur TuneMyMusic, choisissez « texte » comme source, collez la liste, puis la plateforme de votre choix (Spotify, Deezer, Apple Music, YouTube Music…).');
+  setHint(t('playlistHint'));
   open('https://www.tunemymusic.com/transfer', '_blank', 'noopener');
 };
 
@@ -873,8 +920,8 @@ document.getElementById('backupLoad').onchange = async e => {
     mergeState(data);
     syncNow();
     renderExport();
-    setHint(`Sauvegarde restaurée : ${kept.length} titres gardés.`);
-  } catch { setHint('Fichier non reconnu.'); }
+    setHint(t('restored', kept.length));
+  } catch { setHint(t('badFile')); }
 };
 
 document.querySelectorAll('.sheet').forEach(s => s.addEventListener('click', e => {
@@ -923,7 +970,7 @@ async function shareTrack(c) {
     try { await navigator.share({ title: 'Sillon', text, url }); return; }
     catch (e) { if (e.name === 'AbortError') return; }
   }
-  toast(await copyText(`${text}\n${url}`) ? 'Lien copié' : 'Copie impossible');
+  toast(await copyText(`${text}\n${url}`) ? t('linkCopied') : t('copyFailed'));
 }
 
 async function loadShared(id) {
@@ -948,7 +995,7 @@ function announceShared({ track, artist }) {
   label.style.backgroundImage = `url('${cover}')`;
   label.style.backgroundSize = 'cover';
   label.querySelector('span').remove();
-  start.querySelector('p').innerHTML = `On vous fait écouter<br><em>${esc(track.title)}</em> · ${esc(artist.name)}`;
+  start.querySelector('p').innerHTML = `${t('sharedIntro')}<br><em>${esc(track.title)}</em> · ${esc(artist.name)}`;
 }
 
 const sharedId = new URLSearchParams(location.search).get('t');

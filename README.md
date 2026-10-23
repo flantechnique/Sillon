@@ -42,6 +42,10 @@ Tout est portable : l'appli ne dépend que de chemins relatifs.
 - **Si Deezer coupe l'accès** : Apple Music prend le relais tout seul. Pour en faire la source principale, inverser l'ordre dans `findTrack()`.
 - **Si Supabase disparaît** : recréer les tables avec les migrations `sillon_*` (projet top-youtube), changer `SB_URL` et `SB_KEY` dans `index.html` et `tools/build-pool.js`.
 
+## Langues
+
+Interface en français si le téléphone est en français, en anglais sinon (dictionnaire `STR` en tête du script de `index.html`). `?lang=fr` ou `?lang=en` dans l'adresse force une langue.
+
 ## Lancer en local
 
 ```
