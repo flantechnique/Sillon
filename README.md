@@ -56,6 +56,10 @@ Tout est portable : l'appli ne dépend que de chemins relatifs.
 
 Interface en français si le téléphone est en français, en anglais sinon (dictionnaire `STR` en tête du script de `index.html`). `?lang=fr` ou `?lang=en` dans l'adresse force une langue.
 
+## Kit presse
+
+`press/` : logos (PNG, SVG), visuels réseaux FR/EN, captures d'écran FR/EN, textes de présentation (`press/textes.md`) et archive `press/sillon-kit-presse.zip`. Page en ligne : https://flantechnique.github.io/Sillon/press/
+
 ## Lancer en local
 
 ```

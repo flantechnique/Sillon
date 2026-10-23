@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sillon — Kit presse</title>
+<meta name="description" content="Logos, visuels, captures d'écran et textes de présentation de Sillon.">
+<meta property="og:title" content="Sillon — Kit presse / Press kit">
+<meta property="og:description" content="Logos, visuels, captures d'écran et textes de présentation.">
+<meta property="og:image" content="https://flantechnique.github.io/Sillon/og.jpg">
+<link rel="icon" href="../icon-192.png">
+<style>
+@font-face { font-family: 'Fraunces'; font-style: italic; font-weight: 400 800; font-display: swap; src: url(../fonts/fraunces-italic.woff2) format('woff2'); }
+@font-face { font-family: 'Fraunces'; font-style: normal; font-weight: 400 800; font-display: swap; src: url(../fonts/fraunces.woff2) format('woff2'); }
+@font-face { font-family: 'DM Sans'; font-weight: 400 700; font-display: swap; src: url(../fonts/dmsans.woff2) format('woff2'); }
+:root { --paper: #f4e9d4; --paper-2: #ead9bb; --ink: #241b14; --ink-soft: #6b5a4a; --tomato: #e4572e; --mustard: #e9b44c; --teal: #2a9d8f; --line: rgba(36,27,20,.16); --sticker: 3px 3px 0 var(--ink); }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--paper); color: var(--ink); font: 16px/1.55 'DM Sans', system-ui, sans-serif; }
+body::after { content: ''; position: fixed; inset: 0; pointer-events: none; background: url(../grain.png); opacity: .5; mix-blend-mode: multiply; }
+a { color: inherit; }
+main { max-width: 1040px; margin: 0 auto; padding: 48px 16px 80px; }
+header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px; }
+header img { width: min(360px, 80vw); height: auto; }
+h1 { font: italic 700 18px 'Fraunces', serif; color: var(--ink-soft); }
+h2 { font: italic 700 clamp(26px, 4vw, 34px)/1.1 'Fraunces', serif; margin: 56px 0 6px; }
+h3 { font: 700 13px 'DM Sans'; letter-spacing: .12em; text-transform: uppercase; color: var(--tomato); margin: 22px 0 8px; }
+.lead { font: italic 400 20px/1.45 'Fraunces', serif; color: var(--ink-soft); max-width: 720px; margin-top: 18px; }
+.btn { display: inline-flex; align-items: center; gap: 10px; margin-top: 26px; padding: 14px 24px; border-radius: 99px; background: var(--mustard); border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); font-weight: 700; text-decoration: none; }
+.btn small { font-weight: 400; color: var(--ink-soft); }
+.note { font-size: 14px; color: var(--ink-soft); max-width: 760px; }
+.grid { display: grid; gap: 16px; margin-top: 16px; }
+.logos { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.shots { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.socials { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+figure { background: #fffaf0; border: 2px solid var(--ink); border-radius: 14px; box-shadow: var(--sticker); overflow: hidden; display: flex; flex-direction: column; }
+figure.dark { background: #241b14; }
+figure .pic { display: grid; place-items: center; padding: 16px; flex: 1; min-height: 150px; }
+.shots figure .pic { padding: 0; }
+figure img { max-width: 100%; height: auto; display: block; }
+figcaption { display: flex; justify-content: space-between; gap: 8px; padding: 10px 12px; border-top: 1.5px dashed var(--line); background: var(--paper); font-size: 13px; }
+figcaption a { font-weight: 700; color: var(--tomato); white-space: nowrap; }
+.copy { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-top: 12px; }
+.copy article { background: #fffaf0; border: 2px solid var(--ink); border-radius: 14px; box-shadow: var(--sticker); padding: 18px 20px; }
+.copy p { margin-top: 6px; }
+.facts { width: 100%; border-collapse: collapse; margin-top: 16px; background: #fffaf0; border: 2px solid var(--ink); border-radius: 14px; overflow: hidden; }
+.facts th, .facts td { text-align: left; padding: 10px 14px; border-bottom: 1.5px dashed var(--line); vertical-align: top; }
+.facts th { width: 34%; font-weight: 700; }
+.swatches { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+.sw { width: 150px; border: 2px solid var(--ink); border-radius: 12px; overflow: hidden; box-shadow: var(--sticker); background: #fffaf0; font-size: 13px; }
+.sw i { display: block; height: 70px; border-bottom: 2px solid var(--ink); }
+.sw div { padding: 8px 10px; }
+.sw b { display: block; }
+ul.rules { margin: 12px 0 0 20px; max-width: 760px; }
+footer { margin-top: 64px; padding-top: 20px; border-top: 1.5px dashed var(--line); font-size: 14px; color: var(--ink-soft); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="logo/sillon-logo-horizontal.png" alt="Sillon" width="1100" height="320">
+    <h1>Kit presse · Press kit</h1>
+  </header>
+  <p class="lead">Un titre au hasard, d'un artiste au hasard. Rien que la musique.<br><span lang="en">A random track, by a random artist. Nothing but the music.</span></p>
+  <a class="btn" href="sillon-kit-presse.zip" download>Tout télécharger · Download all <small>(ZIP)</small></a>
+
+  <h2>Présentation · About</h2>
+  <div class="copy">
+    <article>
+      <h3>Français</h3>
+      <p><b>Court.</b> Sillon fait écouter un extrait d'un titre tiré au hasard dans tout le catalogue musical, sans algorithme ni popularité, et jamais deux fois le même artiste.</p>
+      <p><b>Long.</b> Les plateformes de streaming nous resservent ce que nous aimons déjà. Sillon fait l'inverse : il tire des numéros au hasard dans tout le catalogue de Deezer, environ 4,4 milliards de possibilités dont seule une sur douze correspond à un vrai titre, et fait écouter un extrait de 30 secondes. Pas d'algorithme, pas de popularité, pas de compte ni de publicité : rien que la musique.</p>
+    </article>
+    <article lang="en">
+      <h3>English</h3>
+      <p><b>Short.</b> Sillon plays a preview of a track drawn at random from the whole music catalogue, with no algorithm, no popularity, and never the same artist twice.</p>
+      <p><b>Long.</b> Streaming platforms keep serving us what we already like. Sillon does the opposite: it draws random numbers across Deezer's whole catalogue, about 4.4 billion possibilities of which only one in twelve is an actual track, and plays a 30-second preview. No algorithm, no popularity, no account and no ads: nothing but the music.</p>
+    </article>
+  </div>
+  <p class="note" style="margin-top:12px">Toutes les versions (court, moyen, long) sont dans <a href="textes.md">textes.md</a>. · All versions are in <a href="textes.md">textes.md</a>.</p>
+
+  <h2>En bref · Facts</h2>
+  <table class="facts">
+    <tr><th>Lien · Link</th><td><a href="https://flantechnique.github.io/Sillon/">flantechnique.github.io/Sillon</a></td></tr>
+    <tr><th>Prix · Price</th><td>Gratuit, sans publicité ni compte · Free, no ads, no account</td></tr>
+    <tr><th>Plateforme · Platform</th><td>Appli web installable sur téléphone et ordinateur · Installable web app, phone and desktop</td></tr>
+    <tr><th>Langues · Languages</th><td>Français, English</td></tr>
+    <tr><th>Fonctions · Features</th><td>Tirage au hasard dans tout le catalogue, jamais deux fois le même artiste, écoute à l'aveugle, titres gardés exportables en playlist, partage d'un titre, synchronisation sans compte · Random draw across the whole catalogue, never the same artist twice, blind listening, saved tracks exportable as a playlist, track sharing, account-free sync</td></tr>
+    <tr><th>Sources audio · Audio</th><td>Extraits de 30 s fournis par Deezer, Apple Music en secours · 30-second previews provided by Deezer, Apple Music as fallback</td></tr>
+    <tr><th>Créé par · Made by</th><td>Flan Technique</td></tr>
+    <tr><th>Contact</th><td><a href="mailto:flantechnique@proton.me">flantechnique@proton.me</a></td></tr>
+  </table>
+
+  <h2>Logos</h2>
+  <div class="grid logos">
+    <figure><div class="pic"><img src="logo/sillon-logo-horizontal.png" alt="Logo horizontal" loading="lazy"></div><figcaption>Horizontal <a href="logo/sillon-logo-horizontal.png" download>PNG</a></figcaption></figure>
+    <figure class="dark"><div class="pic"><img src="logo/sillon-logo-horizontal-fond-sombre.png" alt="Logo horizontal, fond sombre" loading="lazy"></div><figcaption>Horizontal, fond sombre · dark <a href="logo/sillon-logo-horizontal-fond-sombre.png" download>PNG</a></figcaption></figure>
+    <figure><div class="pic"><img src="logo/sillon-logotype.png" alt="Logotype" loading="lazy"></div><figcaption>Logotype <a href="logo/sillon-logotype.png" download>PNG</a></figcaption></figure>
+    <figure class="dark"><div class="pic"><img src="logo/sillon-logotype-fond-sombre.png" alt="Logotype, fond sombre" loading="lazy"></div><figcaption>Logotype, fond sombre · dark <a href="logo/sillon-logotype-fond-sombre.png" download>PNG</a></figcaption></figure>
+    <figure><div class="pic"><img src="logo/sillon-symbole.svg" alt="Symbole" width="140" height="140" loading="lazy"></div><figcaption>Symbole · Mark <span><a href="logo/sillon-symbole.svg" download>SVG</a> · <a href="logo/sillon-symbole.png" download>PNG</a></span></figcaption></figure>
+    <figure><div class="pic"><img src="apercus/sillon-icone.jpg" alt="Icône d'appli" width="140" height="140" style="border-radius:28px" loading="lazy"></div><figcaption>Icône · App icon <a href="logo/sillon-icone.png" download>PNG</a></figcaption></figure>
+  </div>
+
+  <h2>Captures d'écran · Screenshots</h2>
+  <p class="note">Téléphone, 1170 × 2532 px. Les pochettes visibles appartiennent à leurs ayants droit et illustrent le fonctionnement de l'appli. · Phone, 1170 × 2532 px. Album artwork belongs to its rights holders and only illustrates how the app works.</p>
+  <h3>Français</h3>
+  <div class="grid shots" id="shots-fr"></div>
+  <h3>English</h3>
+  <div class="grid shots" id="shots-en"></div>
+
+  <h2>Visuels réseaux · Social visuals</h2>
+  <div class="grid socials" id="socials"></div>
+
+  <h2>Identité · Brand</h2>
+  <div class="swatches">
+    <div class="sw"><i style="background:#e4572e"></i><div><b>Tomate</b>#E4572E</div></div>
+    <div class="sw"><i style="background:#e9b44c"></i><div><b>Moutarde</b>#E9B44C</div></div>
+    <div class="sw"><i style="background:#2a9d8f"></i><div><b>Turquoise</b>#2A9D8F</div></div>
+    <div class="sw"><i style="background:#f4e9d4"></i><div><b>Papier</b>#F4E9D4</div></div>
+    <div class="sw"><i style="background:#241b14"></i><div><b>Encre</b>#241B14</div></div>
+  </div>
+  <p class="note" style="margin-top:16px">Polices : <b>Fraunces</b> (titres, italique) et <b>DM Sans</b> (texte), toutes deux sous licence libre SIL Open Font License. · Fonts: Fraunces (headings, italic) and DM Sans (text), both under the SIL Open Font License.</p>
+  <ul class="rules note">
+    <li>Garder le logo tel quel : pas de déformation, de recoloration ni d'ombre retirée. · Keep the logo as is: no stretching, recolouring or removing the shadow.</li>
+    <li>Laisser autour du logo un espace libre d'au moins la hauteur du « S ». · Leave clear space around it of at least the height of the "S".</li>
+    <li>Sillon s'écrit avec une majuscule, en un seul mot. · Sillon is written as one word, capitalised.</li>
+  </ul>
+
+  <footer>Sillon · <a href="../">Ouvrir l'appli · Open the app</a> · <a href="mailto:flantechnique@proton.me">flantechnique@proton.me</a></footer>
+</main>
+<script>
+const SHOTS = [['01-accueil', 'Accueil', 'Home'], ['02-carte', 'Titre', 'Track'], ['03-carte', 'Titre', 'Track'], ['04-carte', 'Titre', 'Track'], ['05-aveugle', "À l'aveugle", 'Blind'], ['06-gardes', 'Gardés', 'Saved'], ['07-a-propos', 'À propos', 'About']];
+for (const lang of ['fr', 'en']) {
+  document.getElementById('shots-' + lang).innerHTML = SHOTS.map(([f, fr, en]) =>
+    `<figure><div class="pic"><img src="apercus/${f}-${lang}.jpg" alt="${lang === 'fr' ? fr : en}" width="390" height="844" loading="lazy"></div><figcaption>${lang === 'fr' ? fr : en} <a href="captures/${f}-${lang}.png" download>PNG</a></figcaption></figure>`).join('');
+}
+const SOCIAL = [['banniere-1500x500', 'Bannière · Banner 1500×500'], ['carre-1080', 'Carré · Square 1080×1080'], ['story-1080x1920', 'Story 1080×1920']];
+document.getElementById('socials').innerHTML = SOCIAL.flatMap(([f, label]) => ['fr', 'en'].map(lang =>
+  `<figure><div class="pic"><img src="apercus/${f}-${lang}.jpg" alt="${label}" loading="lazy"></div><figcaption>${label} · ${lang.toUpperCase()} <a href="visuels/${f}-${lang}.png" download>PNG</a></figcaption></figure>`)).join('');
+</script>
+</body>
+</html>
