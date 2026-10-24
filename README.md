@@ -23,6 +23,10 @@ Sources audio, dans l'ordre :
 
 Si Supabase ne répond pas, l'appli fonctionne quand même (pas de liste d'exclusion, signalements perdus).
 
+## Fermes à contenu et musique générée par IA
+
+Deezer étiquette la musique générée par IA en interne, mais pas dans son interface publique. Sillon repère donc les fermes à contenu à leur **cadence de publication**, jamais à leur popularité : un artiste apparu en 2022 ou après qui sort plus de 20 albums par an est écarté (`tools/farm.js`). Le tirage quotidien vérifie chaque nouvel artiste (2 requêtes de plus) et garde la liste dans `pool/farms.json` ; `node tools/clean-farms.js` applique la règle à la réserve existante. Les titres isolés générés par IA restent indétectables : le signalement « probablement généré par IA » (colonne `reason` de `sillon_reports`) sert à repérer ce qui passe, avec relecture humaine avant toute exclusion.
+
 ## Règles à respecter
 
 - **Deezer** : seulement les extraits de 30 s, jamais de stockage de l'audio, crédit « Deezer » avec lien sur chaque titre. La réserve ne contient que des identifiants. Respecter ~50 requêtes / 5 s par adresse IP (le tirage est réglé à 8/s).

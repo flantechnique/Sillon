@@ -354,6 +354,17 @@ header > * { pointer-events: auto; }
     <div class="actions" id="platineActions"></div>
   </div>
 </div>
+<div id="reportSheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="reportTitle">
+  <div class="box">
+    <button class="x" data-close aria-label="Fermer" data-t-aria="close">×</button>
+    <h2 id="reportTitle" data-t="reportTitle"></h2>
+    <div class="actions">
+      <button data-reason="not_music" data-t="notMusic"></button>
+      <button data-reason="ai" data-t="reportAi"></button>
+    </div>
+    <p class="hint" data-t="reportHint"></p>
+  </div>
+</div>
 <div id="carnetSheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="carnetTitle">
   <div class="box">
     <button class="x" data-close aria-label="Fermer" data-t-aria="close">×</button>
@@ -386,6 +397,7 @@ const STR = {
     backup: 'Sauvegarder dans un fichier', restore: 'Restaurer',
     syncHint: "À scanner avec l'autre téléphone, ou à saisir dans son Sillon.", syncPh: "Code d'un autre appareil", link: 'Relier',
     digging: 'Tirage…', offline: 'Pas de réseau. Faites défiler pour réessayer.',
+    reportTitle: 'Signaler ce titre', reportAi: 'Probablement généré par IA', reportHint: 'Sert seulement à améliorer le filtre, jamais à bannir un artiste.',
     notMusic: 'Pas de la musique', share: 'Partager', keep: 'Garder', next: 'Suivant', remove: 'Retirer', preview: 'Extrait',
     reported: 'Signalé', linkCopied: 'Lien copié', copyFailed: 'Copie impossible',
     allKept: 'Tous les titres gardés', tracks: n => `${n} titre${n > 1 ? 's' : ''}`,
@@ -429,6 +441,7 @@ const STR = {
     backup: 'Save to a file', restore: 'Restore',
     syncHint: 'Scan it with your other phone, or type it into its Sillon.', syncPh: 'Code from another device', link: 'Link',
     digging: 'Digging…', offline: 'No connection. Scroll to try again.',
+    reportTitle: 'Report this track', reportAi: 'Probably AI-generated', reportHint: 'Only used to improve the filter, never to ban an artist.',
     notMusic: 'Not music', share: 'Share', keep: 'Save', next: 'Next', remove: 'Remove', preview: 'Preview',
     reported: 'Reported', linkCopied: 'Link copied', copyFailed: 'Copy failed',
     allKept: 'All saved tracks', tracks: n => `${n} track${n > 1 ? 's' : ''}`,
@@ -683,7 +696,7 @@ function fill(c, { track, artist, album }) {
       ${c.daily ? '<div class="gres" aria-live="polite"></div>' : ''}
     </div>
     <div class="side">
-      <button class="report" aria-label="${t('notMusic')}" title="${t('notMusic')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg></button>
+      <button class="report" aria-label="${t('reportTitle')}" title="${t('reportTitle')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg></button>
       <button class="share" aria-label="${t('share')}" title="${t('share')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
       <button class="keep" aria-label="${t('keep')}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.5-9.2C1 8.2 3.3 4.5 7 4.5c2 0 3.6 1.1 5 2.8 1.4-1.7 3-2.8 5-2.8 3.7 0 6 3.7 4.5 7.3C19.5 16.4 12 21 12 21z"/></svg></button>
       <button class="next" aria-label="${t('next')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
@@ -703,7 +716,7 @@ function fill(c, { track, artist, album }) {
   keepBtn.classList.toggle('on', kept.some(k => k.trackId === track.id));
   keepBtn.onclick = e => { e.stopPropagation(); reveal(c); toggleKept(entryOf(c)); };
   c.el.querySelector('.next').onclick = e => { e.stopPropagation(); go(cards.indexOf(c) + 1); };
-  c.el.querySelector('.report').onclick = e => { e.stopPropagation(); report(c); };
+  c.el.querySelector('.report').onclick = e => { e.stopPropagation(); openReport(c); };
   c.el.querySelector('.share').onclick = e => { e.stopPropagation(); shareTrack(c); };
   const coverEl = c.el.querySelector('.cover');
   coverEl.onclick = () => togglePlay();
@@ -718,9 +731,21 @@ function labelCard(c) {
   c.el.setAttribute('aria-label', c.el.classList.contains('blind') ? t('hidden') : t('cardLabel', c.data.track.title, c.data.artist.name));
 }
 
-// --- Signalement « pas de la musique » ---
+// --- Signalement : « pas de la musique » ou « probablement généré par IA » ---
 // Il ne bannit personne : il sert seulement à repérer ce que le filtre laisse passer, pour l'améliorer.
-async function report(c) {
+const reportEl = document.getElementById('reportSheet');
+let reportCard = null;
+function openReport(c) {
+  if (!c.data || c.reported) return;
+  reportCard = c;
+  reportEl.classList.add('open');
+}
+reportEl.querySelectorAll('[data-reason]').forEach(b => b.onclick = () => {
+  reportEl.classList.remove('open');
+  if (reportCard) report(reportCard, b.dataset.reason);
+});
+
+async function report(c, reason = 'not_music') {
   if (!c.data || c.reported) return;
   c.reported = true;
   const { track, artist, album } = c.data;
@@ -741,7 +766,7 @@ async function report(c) {
     method: 'POST',
     headers: { ...SB_HEADERS, Prefer: 'return=minimal' },
     body: JSON.stringify({
-      device, source: track.source || 'deezer', track_id: String(track.rawId ?? track.id), title: clip(track.title),
+      device, reason, source: track.source || 'deezer', track_id: String(track.rawId ?? track.id), title: clip(track.title),
       artist_id: String(artist.rawId ?? artist.id), artist_name: clip(artist.name), album_id: album?.id != null ? String(album.id) : null, album_title: clip(album?.title), label: clip(album?.label), genre_id: album?.genre_id ?? null,
       catalog_hits: Math.min(catalogHits, 100),
     }),
@@ -1413,7 +1438,7 @@ function maybeRecap() {
 
 // --- Clavier ---
 addEventListener('keydown', e => {
-  if (e.target.closest('input, textarea') || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.target.closest?.('input, textarea') || e.ctrlKey || e.metaKey || e.altKey) return;
   const open = document.querySelector('.sheet.open, #sync.open');
   if (e.key === 'Escape') {
     if (open) open.classList.remove('open');
@@ -1422,12 +1447,12 @@ addEventListener('keydown', e => {
   }
   if (open) return;
   const start = document.getElementById('start');
-  if (start) { if (e.key === 'Enter' && !e.target.closest('button')) document.getElementById('go').click(); return; }
+  if (start) { if (e.key === 'Enter' && !e.target.closest?.('button')) document.getElementById('go').click(); return; }
   const c = cards[current];
   const key = e.key.toLowerCase();
   if (e.key === 'ArrowDown' || key === 'j') { e.preventDefault(); go(current + 1); }
   else if (e.key === 'ArrowUp' || key === 'k') { e.preventDefault(); go(current - 1); }
-  else if (e.key === ' ' && !e.target.closest('button, a, [role=button]')) { e.preventDefault(); togglePlay(); }
+  else if (e.key === ' ' && !e.target.closest?.('button, a, [role=button]')) { e.preventDefault(); togglePlay(); }
   else if (key === 'l' || key === 'g') c?.el.querySelector('.keep')?.click();
   else if (key === 's') c?.el.querySelector('.share')?.click();
   else if (key === 'b') document.getElementById('blindBtn').click();

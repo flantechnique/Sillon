@@ -9,6 +9,8 @@
   const SPOKEN = new RegExp([
     'podcast', '[ée]pisode', 'chapitre', 'chapter', 'kapitel', 'cap[ií]tulo', 'capitolo', 'hoofdstuk', 'rozdzia[łl]',
     'livre audio', 'audio ?books?', 'audiolibro', 'h[öo]rbuch', 'h[öo]rspiel', 'lesung', 'sermon', 'pr[ée]dication', 'conf[ée]rence',
+    // éditeurs de livres audio et presses universitaires (vus dans la réserve le 24/10/2026)
+    'storytel', 'storyside', 'audible', 'bookbeat', 'nextory', 'saga egmont', 'university press', 'presses universitaires',
     // russe : livre audio, éditeurs de livres audio (\b ne marche pas avec le cyrillique)
     'аудиокниг', 'эксмо', '(^|[^а-яё])аст([^а-яё]|$)', 'азбука-аудиокнига', 'ардис',
   ].join('|'), 'i');
@@ -23,9 +25,12 @@
     'study music', 'focus music', 'for (study|studying|focus|work|reading)', 'study ?& ?focus', 'lo-?fi beats', 'beats to', 'concentration', 'lullab', 'berceuse', 'for babies', 'pour b[ée]b[ée]', 'background music', "musique d'ambiance",
     'ambiance music', 'relajant', 'relaxant', 'rilassant', '\\bbgm\\b', 'chill ?out music', 'chill music', 'caf[ée] music', 'coffee shop',
     '(music|musique|m[uú]sica|musik) (for|pour|para|per|zum|zur) ', 'lounge music', 'spa music', 'piano bar', 'karaoke', 'karaok[ée]',
+    // musique « utilitaire » : bars, hôtels, sport, anxiété (vue dans la réserve le 24/10/2026)
+    'para bares', 'for bars', 'm[uú]sica alegre', 'hotel lobby', 'lobby music', 'restaurant music', 'dinner music', 'backdrops',
+    'anxiety relief', 'stress relief', 'workout (music|mix|tracks|songs)', 'cycling', 'fitness music', 'gym music', 'running music',
   ].join('|'), 'i');
   // Titres seuls : uniquement les marqueurs non ambigus (une chanson peut s'appeler « Rain » ou « Sleep »).
-  const NOT_MUSIC_TITLE = /podcast|[ée]pisode \d|(chapitre|chapter|kapitel|hoofdstuk|cap[ií]tulo|capitolo|rozdzia[łl]|luku|kapittel) \d|^часть \d|^глава \d|white noise|bruit blanc|asmr|binaural|\d{3} ?hz|sleep music|relaxing music|karaok/i;
+  const NOT_MUSIC_TITLE = /^\d{13}[_ -]|podcast|[ée]pisode \d|(chapitre|chapter|kapitel|hoofdstuk|cap[ií]tulo|capitolo|rozdzia[łl]|luku|kapittel) \d|^часть \d|^глава \d|white noise|bruit blanc|asmr|binaural|\d{3} ?hz|sleep music|relaxing music|karaok/i;
 
   const normLabel = l => String(l || '').trim().toLowerCase();
 

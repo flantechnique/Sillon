@@ -85,7 +85,7 @@ td a { color: var(--ink); }
     <div><h2>Reviennent-ils ?</h2><div class="panel scroll" id="retention"></div></div>
   </div>
 
-  <h2>Signalements « pas de la musique »</h2>
+  <h2>Signalements (pas de la musique, probablement IA)</h2>
   <p class="note">Ils servent seulement à améliorer le filtre : on cherche les fermes à contenu (un même label, beaucoup de titres signalés), jamais un artiste à bannir.</p>
   <div class="two" style="margin-top:12px">
     <div class="panel scroll" id="byLabel"></div>
@@ -246,20 +246,20 @@ function renderReports() {
   const byLabel = {};
   for (const r of reps) {
     const k = (r.label || '(sans label)').trim();
-    const g = byLabel[k] ||= { n: 0, artists: new Set(), hits: 0 };
-    g.n++; g.artists.add(r.artist_name); g.hits = Math.max(g.hits, r.catalog_hits || 0);
+    const g = byLabel[k] ||= { n: 0, ai: 0, artists: new Set(), hits: 0 };
+    g.n++; if (r.reason === 'ai') g.ai++; g.artists.add(r.artist_name); g.hits = Math.max(g.hits, r.catalog_hits || 0);
   }
   const labels = Object.entries(byLabel).sort((a, b) => b[1].n - a[1].n).slice(0, 25);
   $('byLabel').innerHTML = `<h3 style="font:700 15px var(--serif);margin-bottom:8px">Par label</h3>` + (labels.length
-    ? `<table><thead><tr><th>Label</th><th class="num">Signalements</th><th class="num">Artistes</th></tr></thead><tbody>${labels.map(([l, g]) => `<tr><td>${esc(l)}</td><td class="num">${g.n}</td><td class="num">${g.artists.size}</td></tr>`).join('')}</tbody></table>`
+    ? `<table><thead><tr><th>Label</th><th class="num">Signalements</th><th class="num">dont IA</th><th class="num">Artistes</th></tr></thead><tbody>${labels.map(([l, g]) => `<tr><td>${esc(l)}</td><td class="num">${g.n}</td><td class="num">${g.ai}</td><td class="num">${g.artists.size}</td></tr>`).join('')}</tbody></table>`
     : '<p class="empty">Aucun signalement pour l\'instant.</p>');
   $('blocks').innerHTML = `<h3 style="font:700 15px var(--serif);margin-bottom:8px">Liste d'exclusion actuelle</h3>` + (data.blocks.length
     ? `<table><thead><tr><th>Type</th><th>Valeur</th><th>Pourquoi</th></tr></thead><tbody>${data.blocks.map(b => `<tr><td>${b.kind === 'label' ? 'Label' : 'Artiste'}</td><td>${esc(b.value)}</td><td>${esc(b.note)}</td></tr>`).join('')}</tbody></table>`
     : '<p class="empty">Vide.</p>');
   $('reports').innerHTML = `<h3 style="font:700 15px var(--serif);margin-bottom:8px">Derniers signalements</h3>` + (reps.length
-    ? `<table><thead><tr><th>Date</th><th>Titre</th><th>Album · label</th><th>Genre</th><th class="num" title="Albums de l'artiste qui ressemblent à des ambiances ou des textes lus">Albums suspects</th></tr></thead><tbody>${reps.slice(0, 100).map(r => {
+    ? `<table><thead><tr><th>Date</th><th>Motif</th><th>Titre</th><th>Album · label</th><th>Genre</th><th class="num" title="Albums de l'artiste qui ressemblent à des ambiances ou des textes lus">Albums suspects</th></tr></thead><tbody>${reps.slice(0, 100).map(r => {
         const link = r.source === 'apple' ? `https://music.apple.com/fr/song/${r.track_id}` : `https://www.deezer.com/track/${r.track_id}`;
-        return `<tr><td>${new Date(r.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</td><td><a href="${link}" target="_blank" rel="noopener">${esc(r.artist_name)} – ${esc(r.title)}</a></td><td>${esc(r.album_title)}${r.label ? ' · ' + esc(r.label) : ''}</td><td>${esc(GENRES[r.genre_id] ?? r.genre_id ?? '')}</td><td class="num">${r.catalog_hits ?? ''}</td></tr>`;
+        return `<tr><td>${new Date(r.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</td><td>${r.reason === 'ai' ? 'IA' : 'Pas musique'}</td><td><a href="${link}" target="_blank" rel="noopener">${esc(r.artist_name)} – ${esc(r.title)}</a></td><td>${esc(r.album_title)}${r.label ? ' · ' + esc(r.label) : ''}</td><td>${esc(GENRES[r.genre_id] ?? r.genre_id ?? '')}</td><td class="num">${r.catalog_hits ?? ''}</td></tr>`;
       }).join('')}</tbody></table>`
     : '<p class="empty">Aucun signalement pour l\'instant.</p>');
 }

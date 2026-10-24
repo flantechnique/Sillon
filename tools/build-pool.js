@@ -4,6 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const { isMusic, isBlocked, normLabel, randomId } = require('../filter.js');
+const { farmCheck } = require('./farm.js');
 
 const TARGET = +process.env.TARGET || 2500;
 const MAX_MINUTES = +process.env.MAX_MINUTES || 100;
@@ -64,12 +65,17 @@ async function loadBlocks() {
   return blocks;
 }
 
+// Fermes déjà repérées (pool/farms.json) : on ne les revérifie pas.
+const FARMS_FILE = path.join(POOL_DIR, 'farms.json');
+function readFarms() { try { return new Set(JSON.parse(fs.readFileSync(FARMS_FILE, 'utf8'))); } catch { return new Set(); } }
+
 async function main() {
   const old = readPool();
+  const farms = readFarms();
   const blocks = await loadBlocks();
   const artists = new Set(old.map(r => r.a));
   const fresh = [];
-  const stats = { calls: 0, tracks: 0, rejected: 0, refused: 0 };
+  const stats = { calls: 0, tracks: 0, rejected: 0, refused: 0, farms: 0 };
   let refusedInRow = 0;
 
   async function worker() {
@@ -85,6 +91,7 @@ async function main() {
         if (!al) continue;
         const album = { ...tr.album, ...al };
         if (!isMusic(tr, album, blocks) || artists.has(tr.artist.id)) { stats.rejected++; continue; }
+        if (farms.has(tr.artist.id) || await farmCheck(dz, tr.artist.id)) { farms.add(tr.artist.id); stats.farms++; continue; }
         artists.add(tr.artist.id);
         fresh.push({ i: tr.id, a: tr.artist.id, g: album.genre_id, l: album.label || '' });
         if (fresh.length % 100 === 0) console.log(`${fresh.length} titres (${stats.calls} requêtes)`);
@@ -98,7 +105,7 @@ async function main() {
   await Promise.all(Array.from({ length: RATE }, worker));
 
   // Les plus récents d'abord, puis les anciens encore valides ; l'exclusion actuelle s'applique aussi aux anciens.
-  const kept = [...fresh, ...old.filter(r => !isBlocked({ artist: { id: r.a } }, { label: r.l }, blocks))].slice(0, POOL_MAX);
+  const kept = [...fresh, ...old.filter(r => !farms.has(r.a) && !isBlocked({ artist: { id: r.a } }, { label: r.l }, blocks))].slice(0, POOL_MAX);
   for (let i = kept.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [kept[i], kept[j]] = [kept[j], kept[i]]; }
 
   // On remplace les morceaux de la réserve, sans toucher au titre du jour (daily.json)
@@ -107,8 +114,9 @@ async function main() {
   const chunks = Math.ceil(kept.length / CHUNK);
   for (let n = 0; n < chunks; n++) fs.writeFileSync(path.join(POOL_DIR, n + '.json'), JSON.stringify(kept.slice(n * CHUNK, (n + 1) * CHUNK)));
   fs.writeFileSync(path.join(POOL_DIR, 'index.json'), JSON.stringify({ updated: new Date().toISOString(), count: kept.length, chunks }));
+  fs.writeFileSync(FARMS_FILE, JSON.stringify([...farms].slice(-50000)));
 
-  console.log(`Nouveaux : ${fresh.length} | réserve : ${kept.length} | requêtes : ${stats.calls} | écartés par le filtre : ${stats.rejected}/${stats.tracks} | refus Deezer : ${stats.refused}`);
+  console.log(`Nouveaux : ${fresh.length} | réserve : ${kept.length} | requêtes : ${stats.calls} | écartés par le filtre : ${stats.rejected}/${stats.tracks} | fermes : ${stats.farms} | refus Deezer : ${stats.refused}`);
   if (refusedInRow >= 30) console.warn('Arrêt anticipé : Deezer refuse les requêtes.');
 }
 
