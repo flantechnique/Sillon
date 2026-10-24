@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const { isMusic, isBlocked, normLabel, randomId } = require('../filter.js');
-const { farmCheck } = require('./farm.js');
+const { farmCheck, FARM_SINCE } = require('./farm.js');
 
 const TARGET = +process.env.TARGET || 2500;
 const MAX_MINUTES = +process.env.MAX_MINUTES || 100;
@@ -91,7 +91,9 @@ async function main() {
         if (!al) continue;
         const album = { ...tr.album, ...al };
         if (!isMusic(tr, album, blocks) || artists.has(tr.artist.id)) { stats.rejected++; continue; }
-        if (farms.has(tr.artist.id) || await farmCheck(dz, tr.artist.id)) { farms.add(tr.artist.id); stats.farms++; continue; }
+        // Seuls les titres sortis depuis 2022 peuvent venir d'une ferme : les autres ne coûtent aucune requête de plus.
+        const year = +String(tr.release_date || album.release_date || '').slice(0, 4);
+        if (year >= FARM_SINCE && (farms.has(tr.artist.id) || await farmCheck(dz, tr.artist.id))) { farms.add(tr.artist.id); stats.farms++; continue; }
         artists.add(tr.artist.id);
         fresh.push({ i: tr.id, a: tr.artist.id, g: album.genre_id, l: album.label || '' });
         if (fresh.length % 100 === 0) console.log(`${fresh.length} titres (${stats.calls} requêtes)`);
