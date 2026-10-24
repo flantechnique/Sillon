@@ -83,6 +83,11 @@ Toutes les 6 heures, `.github/workflows/health.yml` lance `tools/health.js` : si
 
 `legal.html` (français et anglais, lien dans « À propos ») : éditeur Flan Technique, anonyme à titre non professionnel (LCEN art. 6, III, 2), hébergeurs, et politique de confidentialité. Durées annoncées et appliquées chaque nuit par la tâche `sillon-purge-daily` (pg_cron, fonction `sillon_purge`) : synchronisation supprimée après 12 mois sans utilisation, signalements après 24 mois. Si une donnée change, mettre la page à jour.
 
+## Pages annexes et référencement
+
+- `artists.html` : page « Vous êtes artiste ? » (comment un titre arrive sur Sillon, partager, demander son retrait par e-mail ; le retrait passe par la liste d'exclusion, type `artist`).
+- `robots.txt` et `sitemap.xml` ; dans `index.html`, données structurées (schema.org) et texte de présentation dans `<noscript>`.
+
 ## Langues
 
 Interface en français si le téléphone est en français, en anglais sinon (dictionnaire `STR` en tête du script de `index.html`). `?lang=fr` ou `?lang=en` dans l'adresse force une langue.

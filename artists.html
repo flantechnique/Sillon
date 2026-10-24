@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f4e9d4">
+<title>Sillon · Vous êtes artiste ?</title>
+<meta name="description" content="Votre musique est sur Sillon ? Comment elle y arrive, comment la partager, comment la retirer.">
+<link rel="icon" href="icon-192.png">
+<style>
+@font-face { font-family: 'Fraunces'; font-style: normal; font-weight: 400 800; font-display: swap; src: url(fonts/fraunces.woff2) format('woff2'); }
+@font-face { font-family: 'Fraunces'; font-style: italic; font-weight: 400 800; font-display: swap; src: url(fonts/fraunces-italic.woff2) format('woff2'); }
+@font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 400 700; font-display: swap; src: url(fonts/dmsans.woff2) format('woff2'); }
+:root { --paper: #f4e9d4; --card: #fbf4e6; --ink: #241b14; --soft: #6b5a4a; --tomato: #e4572e; --line: rgba(36, 27, 20, .16); }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--paper); color: var(--ink); font: 16px/1.6 'DM Sans', system-ui, sans-serif; padding: 28px 16px 64px; }
+body::after { content: ''; position: fixed; inset: 0; pointer-events: none; background: url(grain.png); opacity: .5; mix-blend-mode: multiply; }
+main { max-width: 720px; margin: 0 auto; }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 26px; }
+.logo { display: inline-flex; align-items: center; gap: 8px; font: italic 700 20px 'Fraunces', serif; color: var(--ink); text-decoration: none; background: var(--paper); border: 2px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); border-radius: 99px; padding: 3px 14px 4px 5px; }
+.logo i { width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle, var(--paper) 0 9%, var(--tomato) 10% 33%, #1c1612 34%); }
+.lang a { color: var(--soft); font-weight: 700; font-size: 14px; margin-left: 10px; }
+.lang a[aria-current] { color: var(--ink); text-decoration: none; }
+h1 { font: 750 34px/1.1 'Fraunces', serif; letter-spacing: -.01em; }
+.date { color: var(--soft); font-size: 14px; margin-top: 6px; }
+h2 { font: 700 22px/1.2 'Fraunces', serif; margin: 34px 0 10px; }
+p + p, p + ul, ul + p { margin-top: 10px; }
+ul { padding-left: 20px; }
+li + li { margin-top: 6px; }
+a { color: var(--ink); }
+.box { background: var(--card); border: 2px solid var(--ink); border-radius: 14px; box-shadow: 3px 3px 0 var(--ink); padding: 14px 16px; margin-top: 12px; }
+.scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 12px; }
+th { text-align: left; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--soft); padding: 6px 8px; border-bottom: 2px solid var(--ink); }
+td { padding: 9px 8px; border-bottom: 1.5px dashed var(--line); vertical-align: top; }
+article[hidden] { display: none; }
+:focus-visible { outline: 3px solid var(--tomato); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <a class="logo" href="./"><i></i>Sillon</a>
+    <span class="lang"><a href="?lang=fr" data-l="fr">Français</a><a href="?lang=en" data-l="en">English</a></span>
+  </div>
+
+  <article lang="fr" id="fr">
+    <h1>Vous êtes artiste ?</h1>
+    <p class="date">Votre musique est passée sur Sillon : voici comment elle y est arrivée, et ce que vous pouvez faire.</p>
+
+    <h2>Comment votre titre est arrivé là</h2>
+    <p>Sillon tire des titres au hasard dans tout le catalogue de Deezer, et d'Apple Music en secours. Personne ne les choisit : ni algorithme, ni popularité, ni nous. Si quelqu'un vous a entendu, c'est qu'il est tombé sur vous par hasard, et chaque titre gardé l'a été parce qu'il a plu.</p>
+    <ul>
+      <li>Seul l'<b>extrait de 30 secondes</b> fourni par Deezer ou Apple est joué, jamais le titre complet, et rien n'est stocké.</li>
+      <li>Chaque carte renvoie vers <b>votre page</b> Deezer ou Apple Music, et les titres gardés vers Spotify, YouTube et Bandcamp, pour l'écoute complète.</li>
+      <li>Sillon est <b>gratuit et sans publicité</b> : il ne gagne rien sur votre musique.</li>
+    </ul>
+
+    <h2>Partager votre passage</h2>
+    <p>Le bouton de partage d'une carte donne un lien qui ouvre Sillon directement sur votre titre, et une image prête pour une story. Si vous en parlez, identifiez <b>@sillon_music</b> (Instagram, TikTok, X) : on relaie volontiers.</p>
+    <div class="box">Sillon ne propose aucune mise en avant, payante ou non : le hasard reste la règle, pour vous comme pour tout le monde.</div>
+
+    <h2>Retirer votre musique</h2>
+    <p>Vous préférez ne pas apparaître ? Écrivez à <a href="mailto:flantechnique@proton.me?subject=Retrait%20Sillon">flantechnique@proton.me</a> avec le lien de votre page Deezer (ou Apple Music) ou d'un de vos titres. Votre profil d'artiste est ajouté à la liste d'exclusion, sans justification à donner, en général sous quelques jours. Le retrait vaut pour tous vos titres.</p>
+
+    <h2>Un souci ?</h2>
+    <p>Un titre attribué au mauvais artiste, une pochette qui n'est pas la vôtre, un contenu qui imite votre musique : écrivez-nous à la même adresse.</p>
+  </article>
+
+  <article lang="en" id="en" hidden>
+    <h1>Are you an artist?</h1>
+    <p class="date">Your music played on Sillon: here's how it got there, and what you can do.</p>
+
+    <h2>How your track got there</h2>
+    <p>Sillon draws tracks at random from the whole Deezer catalogue, with Apple Music as a fallback. Nobody picks them: no algorithm, no popularity, not us. If someone heard you, they stumbled upon you by chance, and every saved track was saved because they liked it.</p>
+    <ul>
+      <li>Only the <b>30-second preview</b> provided by Deezer or Apple is played, never the full track, and nothing is stored.</li>
+      <li>Every card links to <b>your page</b> on Deezer or Apple Music, and saved tracks link to Spotify, YouTube and Bandcamp for full listening.</li>
+      <li>Sillon is <b>free and ad-free</b>: it makes no money from your music.</li>
+    </ul>
+
+    <h2>Share your moment</h2>
+    <p>The share button on a card gives a link that opens Sillon right on your track, and an image ready for a story. If you post about it, tag <b>@sillon_music</b> (Instagram, TikTok, X): we're happy to share it.</p>
+    <div class="box">Sillon offers no featuring, paid or otherwise: chance stays the rule, for you as for everyone.</div>
+
+    <h2>Remove your music</h2>
+    <p>Would you rather not appear? Write to <a href="mailto:flantechnique@proton.me?subject=Sillon%20removal">flantechnique@proton.me</a> with a link to your Deezer (or Apple Music) page or one of your tracks. Your artist profile is added to the exclusion list, no reason needed, usually within a few days. Removal applies to all your tracks.</p>
+
+    <h2>Something wrong?</h2>
+    <p>A track credited to the wrong artist, artwork that isn't yours, content imitating your music: write to us at the same address.</p>
+  </article>
+</main>
+<script>
+// Même règle que l'appli : ?lang=fr|en, sinon la langue du navigateur
+const p = new URLSearchParams(location.search).get('lang');
+const lang = ['fr', 'en'].includes(p) ? p : /^fr\b/i.test(navigator.language || 'fr') ? 'fr' : 'en';
+document.documentElement.lang = lang;
+document.getElementById('fr').hidden = lang !== 'fr';
+document.getElementById('en').hidden = lang !== 'en';
+document.querySelectorAll('[data-l]').forEach(a => { if (a.dataset.l === lang) a.setAttribute('aria-current', 'page'); });
+if (lang === 'en') document.title = 'Sillon · Are you an artist?';
+</script>
+</body>
+</html>

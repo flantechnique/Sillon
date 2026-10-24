@@ -26,6 +26,13 @@
 <meta property="og:locale" content="fr_FR">
 <meta property="og:locale:alternate" content="en_US">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://sillon.cloud/">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "WebApplication", "name": "Sillon", "url": "https://sillon.cloud/",
+ "applicationCategory": "MusicApplication", "operatingSystem": "Web", "inLanguage": ["fr", "en"], "isAccessibleForFree": true,
+ "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"},
+ "description": "Un titre au hasard, d'un artiste au hasard, tiré dans tout le catalogue musical. Pas d'algorithme, pas de popularité, jamais deux fois le même artiste. A random track, by a random artist, with no algorithm."}
+</script>
 <style>
 @font-face { font-family: 'Fraunces'; font-style: normal; font-weight: 400 800; font-display: swap; src: url(fonts/fraunces.woff2) format('woff2'); }
 @font-face { font-family: 'Fraunces'; font-style: italic; font-weight: 400 800; font-display: swap; src: url(fonts/fraunces-italic.woff2) format('woff2'); }
@@ -269,6 +276,12 @@ header > * { pointer-events: auto; }
 #carnetBody .chips button:not(.on) { border-style: dashed; opacity: .55; }
 #carnetBody .chips button.on { background: var(--ink); color: var(--paper); }
 
+/* --- Indice de glissement (première visite) --- */
+.swipeHint { position: absolute; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translateX(-50%); width: 46px; height: 46px; display: grid; place-items: center; color: var(--fg); opacity: .8; pointer-events: none; animation: nudge 1.6s ease-in-out infinite; }
+.swipeHint svg { width: 30px; height: 30px; }
+@keyframes nudge { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -12px); } }
+.loader .retry { margin-top: 4px; font-weight: 700; font-size: 14px; padding: 9px 18px; border-radius: 99px; background: var(--paper); color: var(--ink); border: 2px solid var(--ink); box-shadow: var(--sticker); }
+
 /* --- Titre du jour --- */
 #daily { font-weight: 700; font-size: 14px; padding: 4px 2px; border-bottom: 2px solid currentColor; color: var(--ink-soft); }
 #daily[hidden] { display: none; }
@@ -281,7 +294,7 @@ header > * { pointer-events: auto; }
 @media (hover: none) { .keys { display: none; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .vinyl { animation: none; }
+  .vinyl, .swipeHint { animation: none; }
   .disc, .arm, #start, #toast, .side button, #go { transition: none; }
   #feed { scroll-behavior: auto; }
 }
@@ -289,6 +302,15 @@ header > * { pointer-events: auto; }
 </head>
 <body>
 
+<noscript>
+  <div style="max-width:560px;margin:40px auto;padding:0 20px;font:16px/1.6 Georgia,serif;color:#241b14">
+    <h1>Sillon</h1>
+    <p>Un titre au hasard, d'un artiste au hasard, tiré dans tout le catalogue musical de Deezer. Pas d'algorithme, pas de popularité, jamais deux fois le même artiste. Écoute à l'aveugle, devinette du jour, titres gardés à retrouver sur toutes les plateformes. Gratuit, sans compte, sans publicité.</p>
+    <p>A random track, by a random artist, drawn from the whole music catalogue. No algorithm, no popularity, never the same artist twice. Free, no account, no ads.</p>
+    <p>Sillon a besoin de JavaScript pour jouer de la musique. · Sillon needs JavaScript to play music.</p>
+    <p><a href="artists.html">Vous êtes artiste ?</a> · <a href="legal.html">Mentions légales et confidentialité</a></p>
+  </div>
+</noscript>
 <div id="start">
   <div class="deck" aria-hidden="true"><div class="platter"><div class="vinyl"><div class="sheen"></div><div class="label"><span>Sillon</span></div></div></div><div class="arm"><svg viewBox="0 0 100 100" aria-hidden="true"><line x1="84" y1="12" x2="47" y2="80" stroke="#241b14" stroke-width="7.5" stroke-linecap="round"/><line x1="84" y1="12" x2="47" y2="80" stroke="#efe2c8" stroke-width="4" stroke-linecap="round"/><path d="M41 76 l12 6 -5 11 -12 -6z" fill="#efe2c8" stroke="#241b14" stroke-width="2.2" stroke-linejoin="round"/><circle cx="84" cy="12" r="10" fill="#efe2c8" stroke="#241b14" stroke-width="2.4"/><circle cx="84" cy="12" r="3.2" fill="#241b14"/></svg></div></div>
   <h1>Sillon</h1>
@@ -330,7 +352,7 @@ header > * { pointer-events: auto; }
     <div class="aboutText" data-t="aboutBody"></div>
     <p class="keys" data-t="keys"></p>
     <label class="optout"><input type="checkbox" id="statsToggle"> <span data-t="statsLabel"></span></label>
-    <p class="hint contact"><span data-t="contact"></span> <a href="mailto:flantechnique@proton.me">flantechnique@proton.me</a> · <a href="https://github.com/flantechnique/Sillon" target="_blank" rel="noopener" data-t="sourceCode"></a> · <a id="legalLink" href="legal.html" target="_blank" rel="noopener" data-t="legal"></a></p>
+    <p class="hint contact"><span data-t="contact"></span> <a href="mailto:flantechnique@proton.me">flantechnique@proton.me</a> · <a href="https://github.com/flantechnique/Sillon" target="_blank" rel="noopener" data-t="sourceCode"></a> · <a id="artistsLink" href="artists.html" target="_blank" rel="noopener" data-t="artists"></a> · <a id="legalLink" href="legal.html" target="_blank" rel="noopener" data-t="legal"></a></p>
   </div>
 </div>
 <div id="share" class="sheet" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
@@ -396,7 +418,7 @@ const STR = {
     close: 'Fermer', all: 'Tout', playlist: 'Créer une playlist', copyList: 'Copier la liste',
     backup: 'Sauvegarder dans un fichier', restore: 'Restaurer',
     syncHint: "À scanner avec l'autre téléphone, ou à saisir dans son Sillon.", syncPh: "Code d'un autre appareil", link: 'Relier',
-    digging: 'Tirage…', offline: 'Pas de réseau. Faites défiler pour réessayer.',
+    digging: 'Tirage…', offline: "Pas de réseau pour l'instant.", sourcesDown: 'Les catalogues ne répondent pas. Réessayez dans quelques minutes.', retry: 'Réessayer', swipe: 'Titre suivant',
     reportTitle: 'Signaler ce titre', reportAi: 'Probablement généré par IA', reportHint: 'Sert seulement à améliorer le filtre, jamais à bannir un artiste.',
     notMusic: 'Pas de la musique', share: 'Partager', keep: 'Garder', next: 'Suivant', remove: 'Retirer', preview: 'Extrait',
     reported: 'Signalé', linkCopied: 'Lien copié', copyFailed: 'Copie impossible',
@@ -407,7 +429,7 @@ const STR = {
     badCode: 'Code invalide', syncOffline: 'Hors ligne — nouvel essai plus tard', synced: d => 'Synchronisé ' + d,
     linkConfirm: code => `Relier cet appareil à ${code} ?\nTitres gardés, récents et artistes entendus seront partagés.`,
     sharedIntro: 'On vous fait écouter',
-    about: 'À propos', sourceCode: 'Code source', contact: 'Contact :', legal: 'Mentions légales et confidentialité',
+    about: 'À propos', sourceCode: 'Code source', contact: 'Contact :', legal: 'Mentions légales et confidentialité', artists: 'Vous êtes artiste ?',
     statsLabel: 'Compter mes visites, anonymement',
     aboutBody: `<p>Un titre au hasard, d'un artiste au hasard, tiré dans tout le catalogue. Pas d'algorithme, pas de popularité, jamais deux fois le même artiste.</p>
       <p><b>Fait par des humains.</b> Sillon écarte les fermes à contenu et la musique générée par IA qu'il sait repérer. Si un titre passe quand même, signalez-le avec le drapeau.</p>
@@ -441,7 +463,7 @@ const STR = {
     close: 'Close', all: 'All', playlist: 'Make a playlist', copyList: 'Copy the list',
     backup: 'Save to a file', restore: 'Restore',
     syncHint: 'Scan it with your other phone, or type it into its Sillon.', syncPh: 'Code from another device', link: 'Link',
-    digging: 'Digging…', offline: 'No connection. Scroll to try again.',
+    digging: 'Digging…', offline: 'No connection right now.', sourcesDown: "The catalogues aren't answering. Try again in a few minutes.", retry: 'Try again', swipe: 'Next track',
     reportTitle: 'Report this track', reportAi: 'Probably AI-generated', reportHint: 'Only used to improve the filter, never to ban an artist.',
     notMusic: 'Not music', share: 'Share', keep: 'Save', next: 'Next', remove: 'Remove', preview: 'Preview',
     reported: 'Reported', linkCopied: 'Link copied', copyFailed: 'Copy failed',
@@ -452,7 +474,7 @@ const STR = {
     badCode: 'Invalid code', syncOffline: 'Offline — will retry later', synced: d => 'Synced ' + d,
     linkConfirm: code => `Link this device to ${code}?\nSaved tracks, recent tracks and artists already heard will be shared.`,
     sharedIntro: 'Someone wants you to hear',
-    about: 'About', sourceCode: 'Source code', contact: 'Contact:', legal: 'Legal notice and privacy',
+    about: 'About', sourceCode: 'Source code', contact: 'Contact:', legal: 'Legal notice and privacy', artists: 'Are you an artist?',
     statsLabel: 'Count my visits, anonymously',
     aboutBody: `<p>A random track, by a random artist, drawn from the whole catalogue. No algorithm, no popularity, never the same artist twice.</p>
       <p><b>Made by people.</b> Sillon filters out content farms and the AI-generated music it can detect. If a track still slips through, report it with the flag.</p>
@@ -488,6 +510,7 @@ document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = t(el.datase
 document.querySelectorAll('[data-t-aria]').forEach(el => el.setAttribute('aria-label', t(el.dataset.tAria)));
 document.querySelectorAll('[data-t-ph]').forEach(el => { el.placeholder = t(el.dataset.tPh); });
 document.getElementById('legalLink').href = 'legal.html?lang=' + LANG;
+document.getElementById('artistsLink').href = 'artists.html?lang=' + LANG;
 
 // Genres Deezer de la devinette et du carnet (même liste que tools/pick-daily.js, sans livres audio ni jeunesse)
 const GENRES = {
@@ -601,7 +624,13 @@ async function findTrack() {
 // --- Apple Music (source de secours : même catalogue grand public que Deezer ou Spotify, sans clé) ---
 // Une requête interroge 200 identifiants tirés au hasard et renvoie souvent des dizaines de chansons.
 const APPLE_MAX_ID = 1900000000; // identifiants de titres Apple jusqu'à ~1,9 milliard (mesuré le 23/10/2026)
-const APPLE_COUNTRY = 'FR';
+// Boutique Apple du pays du visiteur (région de la langue du navigateur), pour que les liens mènent à la bonne boutique.
+const APPLE_COUNTRY = (() => {
+  const tag = navigator.language || 'fr-FR';
+  const region = (tag.match(/-([A-Za-z]{2})\b/) || [])[1];
+  if (region) return region.toUpperCase();
+  return { fr: 'FR', en: 'US', de: 'DE', es: 'ES', it: 'IT', pt: 'BR', nl: 'NL', ja: 'JP', ko: 'KR', pl: 'PL', sv: 'SE' }[tag.slice(0, 2).toLowerCase()] || 'FR';
+})();
 const APPLE_EXCLUDED_GENRES = /relax|karaok|enfant|children|kids|jeunesse|livres? audio|audiobook|spoken|parl[ée]|humou?r|comedy|com[ée]die|fitness|instruct|podcast|m[ée]ditation|nature|bruit/i;
 const appleQueue = [];
 
@@ -785,13 +814,26 @@ function toast(text) {
   toastT = setTimeout(() => el.classList.remove('show'), 1600);
 }
 
+// Carte en échec : pas de réseau, ou Deezer et Apple qui ne répondent plus. Un bouton relance le tirage.
+function showFailure(c) {
+  c.failed = true;
+  c.el.innerHTML = `<div class="loader"><div class="loading">${t(navigator.onLine === false ? 'offline' : 'sourcesDown')}</div><button class="retry">${t('retry')}</button></div>`;
+  c.el.querySelector('.retry').onclick = e => { e.stopPropagation(); retryCard(c); };
+}
+function retryCard(c) {
+  c.failed = false;
+  c.el.innerHTML = LOADER;
+  pending++;
+  findTrack().then(d => fill(c, d)).catch(() => showFailure(c)).finally(() => pending--);
+}
+
 function topUp() {
   while (cards.length - Math.max(current, 0) <= AHEAD && pending < (platine ? 1 : 2)) { // en platine, un tirage à la fois pour garder l'ordre
     const c = placeholder();
     pending++;
     findTrack()
       .then(d => fill(c, d))
-      .catch(() => { c.el.innerHTML = `<div class="loader"><div class="loading">${t('offline')}</div></div>`; c.failed = true; })
+      .catch(() => showFailure(c))
       .finally(() => { pending--; topUp(); store.set('seen', [...seenArtists].slice(-20000)); });
   }
 }
@@ -833,18 +875,27 @@ function togglePlay(force) {
 }
 
 // Change de titre sans attendre le défilement : marche aussi écran verrouillé (boutons des écouteurs).
+// Première visite : une flèche invite à faire glisser vers le titre suivant, puis ne revient plus.
+let hinted = store.get('hinted', false);
+function showHint() {
+  if (hinted || current !== 0 || !cards[0]?.data || cards[0].el.querySelector('.swipeHint')) return;
+  cards[0].el.insertAdjacentHTML('beforeend', `<div class="swipeHint" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></div>`);
+}
+function hideHint() {
+  if (hinted) return;
+  hinted = true;
+  store.set('hinted', true);
+  document.querySelectorAll('.swipeHint').forEach(h => h.remove());
+}
+
 function setCurrent(i) {
   if (i === current || !cards[i]) return;
+  if (current >= 0 && i !== current) hideHint();
   current = i;
   cards.forEach((x, j) => x.el.classList.toggle('current', j === i));
   syncSpin();
   const c = cards[i];
-  if (c.failed) {
-    c.failed = false;
-    c.el.innerHTML = LOADER;
-    pending++;
-    findTrack().then(d => fill(c, d)).catch(() => {}).finally(() => pending--);
-  }
+  if (c.failed) retryCard(c);
   play(i);
   topUp();
 }
@@ -1470,6 +1521,7 @@ document.getElementById('go').onclick = () => {
   if (current < 0) setCurrent(0); // sans attendre la détection de la carte visible
   else play(current);
   maybeRecap();
+  setTimeout(showHint, 2500); // laisse d'abord écouter un peu
 };
 // --- Partage d'un titre : le lien ouvre Sillon sur ce titre, puis le hasard reprend ---
 // ?t=123 pour Deezer, ?t=ap:123 pour Apple Music.
@@ -1692,7 +1744,7 @@ function fillWith(c, id, onLoad) {
   pending++;
   loadShared(id)
     .then(d => { if (!d) throw new Error('introuvable'); seenArtists.add(d.artist.id); fill(c, d); onLoad?.(d); })
-    .catch(() => { c.daily = false; return findTrack().then(d => fill(c, d)).catch(() => { c.failed = true; }); })
+    .catch(() => { c.daily = false; return findTrack().then(d => fill(c, d)).catch(() => showFailure(c)); })
     .finally(() => { pending--; topUp(); });
 }
 

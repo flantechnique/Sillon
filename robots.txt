@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /admin.html
+Disallow: /press/a-programmer/
+Allow: /
+
+Sitemap: https://sillon.cloud/sitemap.xml
