@@ -28,7 +28,7 @@ Free, no account, no ads: sillon.cloud
 
 ## 3. Les 22 Shorts
 
-Fichiers dans `press/a-programmer/` (même vidéo que le TikTok du jour).
+Fichiers dans `press/a-programmer/` (même vidéo que le TikTok du jour). Les Shorts des 3, 7, 11 et 18 nov. ont été remplacés le 24 oct. (fichiers `-v2`).
 
 ### 2026-10-28 à 12h : `2026-10-28-guess-the-genre.mp4`
 
@@ -94,7 +94,7 @@ Drawn at random from the whole catalogue by Sillon: sillon.cloud
 #shorts #guessthegenre #musicdiscovery
 ```
 
-### 2026-11-03 à 12h : `2026-11-03-guess-the-genre.mp4`
+### 2026-11-03 à 12h : `2026-11-03-guess-the-genre-v2.mp4`
 
 **Titre** : `Guess the genre #5 | a random track, no algorithm`
 
@@ -103,8 +103,8 @@ Drawn at random from the whole catalogue by Sillon: sillon.cloud
 ```
 Guess the genre before the reveal, then tell us in the comments.
 
-Track: Samurai_Work_Tunes – Stripped Courage
-Full track: https://www.deezer.com/track/3588775121
+Track: From The Get Go – Bring Me Your Worst
+Full track: https://www.deezer.com/track/3727104822
 
 Drawn at random from the whole catalogue by Sillon: sillon.cloud
 #shorts #guessthegenre #musicdiscovery
@@ -142,7 +142,7 @@ Drawn at random from the whole catalogue by Sillon: sillon.cloud
 #shorts #guessthegenre #musicdiscovery
 ```
 
-### 2026-11-07 à 12h : `2026-11-07-guess-the-genre.mp4`
+### 2026-11-07 à 12h : `2026-11-07-guess-the-genre-v2.mp4`
 
 **Titre** : `Guess the genre #8 | a random track, no algorithm`
 
@@ -151,8 +151,8 @@ Drawn at random from the whole catalogue by Sillon: sillon.cloud
 ```
 Guess the genre before the reveal, then tell us in the comments.
 
-Track: islero metal – SEXI DULCINEA
-Full track: https://www.deezer.com/track/3547896461
+Track: Rasster – Loving Arms
+Full track: https://www.deezer.com/track/3423423581
 
 Drawn at random from the whole catalogue by Sillon: sillon.cloud
 #shorts #guessthegenre #musicdiscovery
@@ -206,7 +206,7 @@ Drawn at random from the whole catalogue by Sillon: sillon.cloud
 #shorts #guessthegenre #musicdiscovery
 ```
 
-### 2026-11-11 à 12h : `2026-11-11-guess-the-genre.mp4`
+### 2026-11-11 à 12h : `2026-11-11-guess-the-genre-v2.mp4`
 
 **Titre** : `Guess the genre #12 | a random track, no algorithm`
 
@@ -215,8 +215,8 @@ Drawn at random from the whole catalogue by Sillon: sillon.cloud
 ```
 Guess the genre before the reveal, then tell us in the comments.
 
-Track: Osepaa – Avangard (Slowed)
-Full track: https://www.deezer.com/track/4208651342
+Track: 韩宝仪 – 一去不回头
+Full track: https://www.deezer.com/track/863190692
 
 Drawn at random from the whole catalogue by Sillon: sillon.cloud
 #shorts #guessthegenre #musicdiscovery
@@ -318,7 +318,7 @@ Drawn at random from the whole catalogue by Sillon: sillon.cloud
 #shorts #guessthegenre #musicdiscovery
 ```
 
-### 2026-11-18 à 12h : `2026-11-18-guess-the-genre.mp4`
+### 2026-11-18 à 12h : `2026-11-18-guess-the-genre-v2.mp4`
 
 **Titre** : `Guess the genre #19 | a random track, no algorithm`
 
@@ -327,8 +327,8 @@ Drawn at random from the whole catalogue by Sillon: sillon.cloud
 ```
 Guess the genre before the reveal, then tell us in the comments.
 
-Track: Khiev Channarith – Your Coat in the Hallway
-Full track: https://www.deezer.com/track/4064863531
+Track: Sabino Méndez – Bandera
+Full track: https://www.deezer.com/track/68528322
 
 Drawn at random from the whole catalogue by Sillon: sillon.cloud
 #shorts #guessthegenre #musicdiscovery
