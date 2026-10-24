@@ -75,6 +75,10 @@ Toutes les 6 heures, `.github/workflows/health.yml` lance `tools/health.js` : si
 
 `admin.html` : visites, écoutes, partages, provenance des nouveaux visiteurs, retour à 7 jours, signalements regroupés par label et liste d'exclusion. Lecture seule. Il s'ouvre avec un lien secret (`admin.html#k=…`, conservé hors du dépôt) ; la base ne garde que l'empreinte SHA-256 de la clé (table `sillon_admin`, fonction `sillon_admin_data`). Pour changer de clé : remplacer l'empreinte dans `sillon_admin`.
 
+## Mentions légales et données
+
+`legal.html` (français et anglais, lien dans « À propos ») : éditeur Flan Technique, anonyme à titre non professionnel (LCEN art. 6, III, 2), hébergeurs, et politique de confidentialité. Durées annoncées et appliquées chaque nuit par la tâche `sillon-purge-daily` (pg_cron, fonction `sillon_purge`) : synchronisation supprimée après 12 mois sans utilisation, signalements après 24 mois. Si une donnée change, mettre la page à jour.
+
 ## Langues
 
 Interface en français si le téléphone est en français, en anglais sinon (dictionnaire `STR` en tête du script de `index.html`). `?lang=fr` ou `?lang=en` dans l'adresse force une langue.

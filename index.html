@@ -330,7 +330,7 @@ header > * { pointer-events: auto; }
     <div class="aboutText" data-t="aboutBody"></div>
     <p class="keys" data-t="keys"></p>
     <label class="optout"><input type="checkbox" id="statsToggle"> <span data-t="statsLabel"></span></label>
-    <p class="hint contact"><span data-t="contact"></span> <a href="mailto:flantechnique@proton.me">flantechnique@proton.me</a> · <a href="https://github.com/flantechnique/Sillon" target="_blank" rel="noopener" data-t="sourceCode"></a></p>
+    <p class="hint contact"><span data-t="contact"></span> <a href="mailto:flantechnique@proton.me">flantechnique@proton.me</a> · <a href="https://github.com/flantechnique/Sillon" target="_blank" rel="noopener" data-t="sourceCode"></a> · <a id="legalLink" href="legal.html" target="_blank" rel="noopener" data-t="legal"></a></p>
   </div>
 </div>
 <div id="share" class="sheet" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
@@ -395,7 +395,7 @@ const STR = {
     badCode: 'Code invalide', syncOffline: 'Hors ligne — nouvel essai plus tard', synced: d => 'Synchronisé ' + d,
     linkConfirm: code => `Relier cet appareil à ${code} ?\nTitres gardés, récents et artistes entendus seront partagés.`,
     sharedIntro: 'On vous fait écouter',
-    about: 'À propos', sourceCode: 'Code source', contact: 'Contact :',
+    about: 'À propos', sourceCode: 'Code source', contact: 'Contact :', legal: 'Mentions légales et confidentialité',
     statsLabel: 'Compter mes visites, anonymement',
     aboutBody: `<p>Un titre au hasard, d'un artiste au hasard, tiré dans tout le catalogue. Pas d'algorithme, pas de popularité, jamais deux fois le même artiste.</p>
       <p><b>Sources.</b> Extraits de 30 secondes fournis par Deezer, et par Apple Music si Deezer ne répond pas. Les titres gardés renvoient vers les plateformes pour une écoute complète.</p>
@@ -438,7 +438,7 @@ const STR = {
     badCode: 'Invalid code', syncOffline: 'Offline — will retry later', synced: d => 'Synced ' + d,
     linkConfirm: code => `Link this device to ${code}?\nSaved tracks, recent tracks and artists already heard will be shared.`,
     sharedIntro: 'Someone wants you to hear',
-    about: 'About', sourceCode: 'Source code', contact: 'Contact:',
+    about: 'About', sourceCode: 'Source code', contact: 'Contact:', legal: 'Legal notice and privacy',
     statsLabel: 'Count my visits, anonymously',
     aboutBody: `<p>A random track, by a random artist, drawn from the whole catalogue. No algorithm, no popularity, never the same artist twice.</p>
       <p><b>Sources.</b> 30-second previews provided by Deezer, and by Apple Music when Deezer doesn't answer. Saved tracks link to the platforms for full listening.</p>
@@ -472,6 +472,7 @@ document.documentElement.lang = LANG;
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = t(el.dataset.t); });
 document.querySelectorAll('[data-t-aria]').forEach(el => el.setAttribute('aria-label', t(el.dataset.tAria)));
 document.querySelectorAll('[data-t-ph]').forEach(el => { el.placeholder = t(el.dataset.tPh); });
+document.getElementById('legalLink').href = 'legal.html?lang=' + LANG;
 
 // Genres Deezer de la devinette et du carnet (même liste que tools/pick-daily.js, sans livres audio ni jeunesse)
 const GENRES = {
