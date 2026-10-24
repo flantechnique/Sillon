@@ -69,8 +69,9 @@ Bouton « Suggest new app », puis ajouter Sillon comme alternative à Radiooooo
 - **Links** : https://sillon.cloud · https://github.com/flantechnique/Sillon
 - **Topics** : Music, Open Source, Privacy
 - **Pricing** : Free
-- **Thumbnail (240×240)** : `press/logo/sillon-icone.png`
-- **Gallery (1270×760 conseillé)** : la bannière `press/visuels/banniere-1500x500-en.png`, puis les captures de `press/captures/` (anglais), puis la vidéo `press/video/sillon-demo-en.mp4` (Product Hunt accepte un lien YouTube : la mettre en ligne en non répertoriée si besoin).
+- **Thumbnail (240×240)** : `press/producthunt/ph-icone-240.gif` (le disque qui tourne)
+- **Gallery (1270×760)**, dans cet ordre : `press/producthunt/ph-1-random.png`, `ph-2-lottery.png`, `ph-3-guess.png`, `ph-4-people.png`, `ph-5-together.png`
+- **Video** : la démo `press/video/sillon-demo-en-v3.mp4`, à mettre en ligne sur la chaîne YouTube (en non répertoriée si besoin) pour coller son lien
 
 **Description (max 260 caractères)**
 
