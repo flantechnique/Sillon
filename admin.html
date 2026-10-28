@@ -165,6 +165,7 @@ function render() {
   const tiles = [
     ['Visites', fmt(S('devices')), 'un appareil compté une fois par jour'],
     ['Nouveaux', fmt(S('new_devices')), 'première visite'],
+    ["Ont lancé l'écoute", pct(S('starts'), S('devices')), `${fmt(S('starts'))} visites (compté depuis le 28 oct.)`],
     ['Titres écoutés', fmt(S('plays')), S('devices') ? (S('plays') / S('devices')).toFixed(1).replace('.', ',') + ' par visite' : ''],
     ['Jusqu\'au bout', pct(S('completes'), S('plays')), 'des extraits écoutés en entier'],
     ['Gardés', fmt(S('kept')), S('plays') ? (100 * S('kept') / S('plays')).toFixed(1).replace('.', ',') + ' pour 100 écoutes' : ''],

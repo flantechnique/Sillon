@@ -1522,6 +1522,8 @@ document.getElementById('go').onclick = () => {
   else play(current);
   maybeRecap();
   setTimeout(showHint, 2500); // laisse d'abord écouter un peu
+  // Visite qui lance vraiment l'écoute : comptée une fois par jour et par appareil
+  if (store.get('lastStart', null) !== localDay()) { store.set('lastStart', localDay()); bump('starts'); }
 };
 // --- Partage d'un titre : le lien ouvre Sillon sur ce titre, puis le hasard reprend ---
 // ?t=123 pour Deezer, ?t=ap:123 pour Apple Music.
@@ -1793,7 +1795,9 @@ if (platine) {
 // --- Mesure d'audience anonyme : compteurs agrégés par jour, aucun identifiant envoyé ---
 // Rétention : chaque téléphone envoie au plus un « passage » par jour avec la date de sa première visite.
 const localDay = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
-let statsOn = store.get('stats', true);
+// Robots (moteurs de recherche, aperçus de liens, navigateurs pilotés) : jamais comptés.
+const isBot = navigator.webdriver || /bot|crawl|spider|slurp|headless|preview|lighthouse|facebookexternalhit|embedly|whatsapp|telegram/i.test(navigator.userAgent);
+let statsOn = !isBot && store.get('stats', true);
 const statCounts = {};
 function bump(k) { if (statsOn) statCounts[k] = (statCounts[k] || 0) + 1; }
 function refOf() {
